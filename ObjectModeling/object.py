@@ -86,8 +86,18 @@ class Cube(Obj):
 
         # Creating faces
 
-
-
+        f0 = self.add_face(e0, e4, e2)
+        f1 = self.add_face(e2, e3, e1)
+        f2 = self.add_face(e9, e13, e15)
+        f3 = self.add_face(e15, e4, e14)
+        f4 = self.add_face(e5, e9, e7)
+        f5 = self.add_face(e7, e8, e6)
+        f6 = self.add_face(e12, e6, e10)
+        f7 = self.add_face(e1, e11, e12)
+        f8 = self.add_face(e5, e13, e17)
+        f9 = self.add_face(e17, e0, e10)
+        f10 = self.add_face(e8, e14, e16)
+        f11 = self.add_face(e16, e3, e11)
 
 if __name__ == '__main__':
     cube = Obj()
