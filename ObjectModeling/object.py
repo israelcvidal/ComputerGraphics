@@ -19,7 +19,7 @@ class Obj(object):
         :return: vertex's id
         """
         id_ = self.vertex_id
-        self.vertices[id] = [x, y, z]
+        self.vertices[id_] = [x, y, z]
         self.vertex_id += 1
         return id_
 
@@ -47,7 +47,7 @@ class Obj(object):
         """
 
         id_ = self.face_id
-        self.face_id = [e1, e2, e3]
+        self.faces[id_] = [e1, e2, e3]
         self.face_id += 1
         return id_
 
@@ -85,7 +85,6 @@ class Cube(Obj):
         e17 = self.add_edge(v1, v4)
 
         # Creating faces
-
         f0 = self.add_face(e2, e4, e0)
         f1 = self.add_face(e1, e3, e2)
         f2 = self.add_face(e9, e13, e15)
