@@ -20,38 +20,96 @@ def get_scale_matrix(e):
     return scale_matrix
 
 
-def get_rotation_matrix(theta, axis):
+def get_rotation_matrix(theta=None, axis=None, sin=None, cos=None):
     # If axis == x, y or z:
-    if axis:
-        rotation_matrix = np.identity(4)
 
-        if axis == 'x':
-            rotation_matrix[1, 1] = math.cos(theta)
-            rotation_matrix[1, 2] = -math.sin(theta)
-            rotation_matrix[2, 1] = math.sin(theta)
-            rotation_matrix[2, 2] = math.cos(theta)
+    rotation_matrix = np.identity(4)
 
-        elif axis == 'y':
-            rotation_matrix[0, 0] = math.cos(theta)
-            rotation_matrix[0, 2] = math.sin(theta)
-            rotation_matrix[2, 0] = -math.sin(theta)
-            rotation_matrix[2, 2] = math.cos(theta)
+    if not sin and cos:
+        sin = math.sin(theta)
+        cos = math.cos(theta)
 
-        elif axis == 'z':
-            rotation_matrix[0, 0] = math.cos(theta)
-            rotation_matrix[0, 1] = -math.sin(theta)
-            rotation_matrix[1, 0] = math.sin(theta)
-            rotation_matrix[1, 1] = math.cos(theta)
+    if axis == 'x':
+        rotation_matrix[1, 1] = cos
+        rotation_matrix[1, 2] = -sin
+        rotation_matrix[2, 1] = sin
+        rotation_matrix[2, 2] = cos
 
-        else:
-            raise Exception("axis must be 'x', 'y', 'z' or None")
+    elif axis == 'y':
+        rotation_matrix[0, 0] = cos
+        rotation_matrix[0, 2] = sin
+        rotation_matrix[2, 0] = -sin
+        rotation_matrix[2, 2] = cos
 
-        return rotation_matrix
+    elif axis == 'z':
+        rotation_matrix[0, 0] = cos
+        rotation_matrix[0, 1] = -sin
+        rotation_matrix[1, 0] = sin
+        rotation_matrix[1, 1] = cos
 
-    # if we want a rotation about an arbitrary axis
-    # todo:
     else:
-        pass
+        raise Exception("axis must be 'x', 'y', 'z' or None")
+
+    return rotation_matrix
+
+
+def get_arbitrary_rotation_matrix(p1, p2, theta):
+    """
+    Rotation of a point in 3 dimensional space by theta about an arbitrary axes
+    defined by a line between two points P1 = (x1,y1,z1) and P2 = (x2,y2,z2).
+
+    (1) translate space so that the rotation axis passes through the origin
+    (2) rotate space about the x axis so that the rotation axis lies in the xz plane
+
+    (3) rotate space about the y axis so that the rotation axis lies along the z axis
+
+    (4) perform the desired rotation by theta about the z axis
+
+    (5) apply the inverse of step (3)
+
+    (6) apply the inverse of step (2)
+
+    (7) apply the inverse of step (1)
+
+    :param p1: points that form the arbitrary line.
+    :param p2: points that form the arbitrary line.
+    :param theta: angle of rotation
+    :return:
+    """
+    # (1)
+    # geting the translation matrices needed for (1) and (7)
+    translation_matrix = get_translation_matrix(-1*np.array(p1))
+    inverse_translation_matrix = get_translation_matrix(np.array(p1))
+
+    # (2)
+    # Let U = (a,b,c) be the unit vector along the rotation axis.
+    # define d = sqrt(b^2 + c^2) as the length of the projection onto the yz plane
+    rotation_axis = np.array(p2) - np.array(p1)
+    u = rotation_axis/np.linalg.norm(rotation_axis)
+    a, b, c = u
+    d = math.sqrt(b**2 + c**2)
+
+    x_rotation_matrix = get_rotation_matrix(axis='x', sin=b/d, cos=c/d)
+    x_inverse_rotation_matrix = np.array(x_rotation_matrix)
+    x_inverse_rotation_matrix[1, 2] *= -1
+    x_inverse_rotation_matrix[2, 1] *= -1
+
+    # (3)
+    y_rotation_matrix = get_rotation_matrix(axis='y', sin=a, cos=d)
+    y_inverse_rotation_matrix = np.array(y_rotation_matrix)
+    y_inverse_rotation_matrix[0, 2] *= -1
+    y_inverse_rotation_matrix[2, 0] *= -1
+
+    # (4)
+    z_rotation_matrix = get_rotation_matrix(axis='z', theta=theta)
+    z_inverse_rotation_matrix = np.array(z_rotation_matrix)
+    z_inverse_rotation_matrix[0, 2] *= -1
+    z_inverse_rotation_matrix[2, 0] *= -1
+
+    result_matrix = compose_matrices([inverse_translation_matrix, x_inverse_rotation_matrix,
+                                      y_inverse_rotation_matrix, z_rotation_matrix,
+                                      y_rotation_matrix, x_rotation_matrix, translation_matrix])
+    return result_matrix
 
 
 def get_translation_matrix(t):
@@ -89,7 +147,12 @@ def get_shear_matrix(axis, direction, alpha):
 
 
 def compose_matrices(args):
-    np.multiply()
+    result_matrix = args.pop(0)
+
+    for matrix in args:
+        result_matrix = np.dot(result_matrix, matrix)
+
+    return result_matrix
 
 
 def get_axis(axis):
@@ -98,4 +161,8 @@ def get_axis(axis):
 
 
 if __name__ == '__main__':
-    print(get_shear_matrix('z', 'y', math.radians(60)))
+    a = [[5, 2, 6, 1], [0, 6, 2, 0], [3, 8, 1, 4], [1, 8, 5, 6]]
+    b = [[7, 5, 8, 0], [1, 8, 2, 6], [9, 4, 3, 8], [5, 3, 7, 9]]
+
+    print(compose_matrices([a, b]))
+
