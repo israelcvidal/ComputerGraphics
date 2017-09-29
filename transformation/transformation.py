@@ -2,7 +2,6 @@ import numpy as np
 import warnings
 import math
 
-
 def get_scale_matrix(e):
     """
     :param e: list of 4 arguments to form the scale matrix
@@ -87,7 +86,6 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     rotation_axis = np.array(p2) - np.array(p1)
     a, b, c = rotation_axis
     d = math.sqrt(b**2 + c**2)
-
     x_rotation_matrix = get_rotation_matrix(axis='x', sin=b/d, cos=c/d)
     x_inverse_rotation_matrix = np.array(x_rotation_matrix)
     x_inverse_rotation_matrix[1, 2] *= -1
@@ -125,7 +123,7 @@ def get_quaternion_matrix(p1, p2, theta):
     :param theta:
     :return:
     """
-    theta = np.radians(theta)
+    half_theta = np.radians(theta/2)
     p1 = np.array(p1)
     p2 = np.array(p2)
     # (1)
@@ -137,10 +135,10 @@ def get_quaternion_matrix(p1, p2, theta):
     u = p2-p1/np.linalg.norm(p2-p1)
 
     # (3)
-    q = np.array([math.cos(theta / 2)] +  (math.sin(theta / 2) * u))
+    q = np.array(list((math.sin(half_theta) * u)) + [math.cos(half_theta)])
 
     # (4)
-    q_ = np.array([math.cos(theta / 2)] + (-math.sin(theta / 2) * u))
+    q_ = np.array(list((-math.sin(half_theta) * u)) + [math.cos(half_theta)])
 
     # (5) getting Lq and Rq*
     x = 0
@@ -154,10 +152,10 @@ def get_quaternion_matrix(p1, p2, theta):
                     [-q[x], -q[y], -q[z], q[w]]]
                    )
 
-    R_q_ = np.array([[q[w], q[z], -q[y], q[x]],
-                    [-q[z], q[w], q[x], q[y]],
-                    [q[y], -q[x], q[w], q[z]],
-                    [-q[x], -q[y], -q[z], q[w]]]
+    R_q_ = np.array([[q_[w], q_[z], -q_[y], q_[x]],
+                    [-q_[z], q_[w], q_[x], q_[y]],
+                    [q_[y], -q_[x], q_[w], q_[z]],
+                    [-q_[x], -q_[y], -q_[z], q_[w]]]
                     )
 
     return compose_matrices([inverse_translation_matrix, L_q, R_q_, translation_matrix])
@@ -229,5 +227,8 @@ if __name__ == '__main__':
 
     u = [6, 0, -4]
     v = [0, 10, -4]
-    print(get_arbitrary_mirror_matrix(u, v))
+
+    print("arbitraty rotation matrix = ", get_arbitrary_rotation_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
+    print("x rotation matrix = ", get_rotation_matrix(30, 'y'))
+    print("quaternion matrix = ", get_quaternion_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
 
