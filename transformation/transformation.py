@@ -25,9 +25,9 @@ def get_rotation_matrix(theta=None, axis=None, sin=None, cos=None):
 
     rotation_matrix = np.identity(4)
 
-    if not sin and cos:
-        sin = math.sin(theta)
-        cos = math.cos(theta)
+    if sin is None and cos is None:
+        sin = math.sin(np.radians(theta))
+        cos = math.cos(np.radians(theta))
 
     if axis == 'x':
         rotation_matrix[1, 1] = cos
@@ -77,7 +77,7 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     :return:
     """
     # (1)
-    # geting the translation matrices needed for (1) and (7)
+    # getting the translation matrices needed for (1) and (7)
     translation_matrix = get_translation_matrix(-1*np.array(p1))
     inverse_translation_matrix = get_translation_matrix(np.array(p1))
 
@@ -85,8 +85,7 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     # Let U = (a,b,c) be the unit vector along the rotation axis.
     # define d = sqrt(b^2 + c^2) as the length of the projection onto the yz plane
     rotation_axis = np.array(p2) - np.array(p1)
-    u = rotation_axis/np.linalg.norm(rotation_axis)
-    a, b, c = u
+    a, b, c = rotation_axis
     d = math.sqrt(b**2 + c**2)
 
     x_rotation_matrix = get_rotation_matrix(axis='x', sin=b/d, cos=c/d)
@@ -95,7 +94,9 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     x_inverse_rotation_matrix[2, 1] *= -1
 
     # (3)
-    y_rotation_matrix = get_rotation_matrix(axis='y', sin=a, cos=d)
+    sin = a/math.sqrt(np.linalg.norm(rotation_axis))
+    cos = d/math.sqrt(np.linalg.norm(rotation_axis))
+    y_rotation_matrix = get_rotation_matrix(axis='y', sin=sin, cos=cos)
     y_inverse_rotation_matrix = np.array(y_rotation_matrix)
     y_inverse_rotation_matrix[0, 2] *= -1
     y_inverse_rotation_matrix[2, 0] *= -1
@@ -124,15 +125,31 @@ def get_translation_matrix(t):
     return translation_matrix
 
 
-def get_mirror_matrix(plane):
+def get_mirror_matrix(u, v):
+    # e.g.: u = 'x', v = 'y'
     mirror_matrix = np.identity(4)
 
-    plane = [get_axis(i) for i in plane]
+    plane = [get_axis(i) for i in [u, v]]
 
     for i in range(len(mirror_matrix)-1):
         if i not in plane:
             mirror_matrix[i, i] = -1
     return mirror_matrix
+
+
+def get_arbitrary_mirror_matrix(u, v):
+    # Translate mirror to origin
+    translation_matrix = get_translation_matrix(-1 * np.array(u))
+    inverse_translation_matrix = get_translation_matrix(np.array(u))
+
+    n = np.cross(u, v)
+    n = (n / np.linalg.norm(n)).reshape(3, 1)
+    n_dot_n = np.dot(n, np.transpose(n))
+    n_dot_n_reshape = np.identity(4)
+    n_dot_n_reshape[:3, :3] = n_dot_n
+
+    mirror_matrix = np.identity(4) - (2*n_dot_n_reshape)
+    return compose_matrices([inverse_translation_matrix, mirror_matrix, translation_matrix])
 
 
 # cisalhamento no eixo 'axis' esbarrando em 'direction'
@@ -161,8 +178,6 @@ def get_axis(axis):
 
 
 if __name__ == '__main__':
-    a = [[5, 2, 6, 1], [0, 6, 2, 0], [3, 8, 1, 4], [1, 8, 5, 6]]
-    b = [[7, 5, 8, 0], [1, 8, 2, 6], [9, 4, 3, 8], [5, 3, 7, 9]]
 
-    print(compose_matrices([a, b]))
+    print(get_rotation_matrix(theta=30, axis='x'))
 
