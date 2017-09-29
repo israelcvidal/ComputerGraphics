@@ -113,6 +113,56 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     return result_matrix
 
 
+def get_quaternion_matrix(p1, p2, theta):
+    """
+    (1) translate p1 to origin
+    (2) calculate unit vector u=p1p2
+    (3) q = (cos(theta/2), sin(theta/2)*u
+    (4) q*=(cos(theta/2), -sin(theta/2)*u
+    (5) return [t_inv][Lq][Rq*][t]
+    :param p1:
+    :param p2:
+    :param theta:
+    :return:
+    """
+    theta = np.radians(theta)
+    p1 = np.array(p1)
+    p2 = np.array(p2)
+    # (1)
+    translation_matrix = get_translation_matrix(-1*np.array(p1))
+    inverse_translation_matrix = get_translation_matrix(np.array(p1))
+
+    # (2)
+    # unit rotation axis
+    u = p2-p1/np.linalg.norm(p2-p1)
+
+    # (3)
+    q = np.array([math.cos(theta / 2)] +  (math.sin(theta / 2) * u))
+
+    # (4)
+    q_ = np.array([math.cos(theta / 2)] + (-math.sin(theta / 2) * u))
+
+    # (5) getting Lq and Rq*
+    x = 0
+    y = 1
+    z = 2
+    w = 3
+
+    L_q = np.array([[q[w], -q[z], q[y], q[x]],
+                    [q[z], q[w], -q[x], q[y]],
+                    [-q[y], q[x], q[w], q[z]],
+                    [-q[x], -q[y], -q[z], q[w]]]
+                   )
+
+    R_q_ = np.array([[q[w], q[z], -q[y], q[x]],
+                    [-q[z], q[w], q[x], q[y]],
+                    [q[y], -q[x], q[w], q[z]],
+                    [-q[x], -q[y], -q[z], q[w]]]
+                    )
+
+    return compose_matrices([inverse_translation_matrix, L_q, R_q_, translation_matrix])
+
+
 def get_translation_matrix(t):
     if len(t) != 3:
         raise Exception("Invalid number of arguments to generate translation matrix. Must be 3")
@@ -144,11 +194,9 @@ def get_arbitrary_mirror_matrix(u, v):
 
     n = np.cross(u, v)
     n = (n / np.linalg.norm(n)).reshape(3, 1)
-    n_dot_n = np.dot(n, np.transpose(n))
-    n_dot_n_reshape = np.identity(4)
-    n_dot_n_reshape[:3, :3] = n_dot_n
 
-    mirror_matrix = np.identity(4) - (2*n_dot_n_reshape)
+    mirror_matrix = np.identity(4)
+    mirror_matrix[:3, :3] = np.identity(3) - (2*np.dot(n, np.transpose(n)))
     return compose_matrices([inverse_translation_matrix, mirror_matrix, translation_matrix])
 
 
@@ -179,5 +227,7 @@ def get_axis(axis):
 
 if __name__ == '__main__':
 
-    print(get_rotation_matrix(theta=30, axis='x'))
+    u = [6, 0, -4]
+    v = [0, 10, -4]
+    print(get_arbitrary_mirror_matrix(u, v))
 
