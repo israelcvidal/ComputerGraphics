@@ -92,8 +92,8 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     x_inverse_rotation_matrix[2, 1] *= -1
 
     # (3)
-    sin = a/math.sqrt(np.linalg.norm(rotation_axis))
-    cos = d/math.sqrt(np.linalg.norm(rotation_axis))
+    sin = a/np.linalg.norm(rotation_axis)
+    cos = d/np.linalg.norm(rotation_axis)
     y_rotation_matrix = get_rotation_matrix(axis='y', sin=sin, cos=cos)
     y_inverse_rotation_matrix = np.array(y_rotation_matrix)
     y_inverse_rotation_matrix[0, 2] *= -1
@@ -101,13 +101,11 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
 
     # (4)
     z_rotation_matrix = get_rotation_matrix(axis='z', theta=theta)
-    z_inverse_rotation_matrix = np.array(z_rotation_matrix)
-    z_inverse_rotation_matrix[0, 2] *= -1
-    z_inverse_rotation_matrix[2, 0] *= -1
 
     result_matrix = compose_matrices([inverse_translation_matrix, x_inverse_rotation_matrix,
                                       y_inverse_rotation_matrix, z_rotation_matrix,
                                       y_rotation_matrix, x_rotation_matrix, translation_matrix])
+
     return result_matrix
 
 
@@ -204,7 +202,7 @@ def get_shear_matrix(axis, direction, alpha):
     i = get_axis(direction)
     j = get_axis(axis)
 
-    shear_matrix[i, j] = math.tan(alpha)
+    shear_matrix[i, j] = math.tan(np.radians(alpha))
 
     return shear_matrix
 
@@ -224,11 +222,15 @@ def get_axis(axis):
 
 
 if __name__ == '__main__':
+    p1 = [0, 1, 0]
 
-    u = [6, 0, -4]
-    v = [0, 10, -4]
+    p2 = [0, 2, 0]
 
-    print("arbitraty rotation matrix = ", get_arbitrary_rotation_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
-    print("x rotation matrix = ", get_rotation_matrix(30, 'y'))
-    print("quaternion matrix = ", get_quaternion_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
+    print(get_arbitrary_rotation_matrix(p1, p2, 30))
+    print(get_quaternion_matrix(p1, p2, 30))
+    # print(get_rotation_matrix(theta=30, axis='y'))
+
+    # print("arbitraty rotation matrix = ", get_arbitrary_rotation_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
+    # print(get_mirror_matrix('x', 'z'))
+    # print("quaternion matrix = ", get_quaternion_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
 
