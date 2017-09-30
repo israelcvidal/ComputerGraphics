@@ -155,6 +155,7 @@ def get_quaternion_matrix(p1, p2, theta):
                     [q_[y], -q_[x], q_[w], q_[z]],
                     [-q_[x], -q_[y], -q_[z], q_[w]]]
                     )
+
     return compose_matrices([inverse_translation_matrix, L_q, R_q_, translation_matrix])
 
 
@@ -220,21 +221,31 @@ def get_axis(axis):
     return dic[axis]
 
 
-if __name__ == '__main__':
-    p1 = np.array([0, 1, 0])
+def transform_4d(point):
+    if len(point) == 3:
+        return np.array(list(point)+[0])
+    elif len(point) == 4:
+        warnings.warn("point already have 3 dimensions")
+        return point
+    else:
+        raise Exception("Point must have 3 dimensions")
 
-    p2 = np.array([0, 20, 0])
+
+if __name__ == '__main__':
+    p1 = np.array([1, 2, 3])
+
+    p2 = np.array([3, 4, 5])
 
     p = np.array([4, 5, 6, 0])
 
     RM = get_arbitrary_rotation_matrix(p1, p2, 50)
     QM = get_quaternion_matrix(p1, p2, 50)
-    R = get_rotation_matrix(axis='y', theta=50)
+    # R = get_rotation_matrix(axis='y', theta=50)
     # print(R)
-    # print(RM)
-    # print(QM)
+    print(RM)
+    print(QM)
 
-    # for M in [RM, QM, R]:
+    # for M in [RM, QM]:
     #     print(M.dot(p))
     # print('RM: ', RM)
     # print('QM: ', QM)
