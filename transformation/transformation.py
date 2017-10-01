@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 import math
 
+
 def get_scale_matrix(e):
     """
     :param e: list of 4 arguments to form the scale matrix
@@ -94,7 +95,7 @@ def get_arbitrary_rotation_matrix(p1, p2, theta):
     # (3)
     sin = a/np.linalg.norm(rotation_axis)
     cos = d/np.linalg.norm(rotation_axis)
-    y_rotation_matrix = get_rotation_matrix(axis='y', sin=sin, cos=cos)
+    y_rotation_matrix = get_rotation_matrix(axis='y', sin=-sin, cos=cos)
     y_inverse_rotation_matrix = np.array(y_rotation_matrix)
     y_inverse_rotation_matrix[0, 2] *= -1
     y_inverse_rotation_matrix[2, 0] *= -1
@@ -232,11 +233,11 @@ def transform_4d(point):
 
 
 if __name__ == '__main__':
-    p1 = np.array([1, 2, 3])
+    p1 = np.array([1, 5, 3])
 
-    p2 = np.array([3, 4, 5])
+    p2 = np.array([3, 10, 5])
 
-    p = np.array([4, 5, 6, 0])
+    p = np.array([4, 5, 0, 0])
 
     RM = get_arbitrary_rotation_matrix(p1, p2, 50)
     QM = get_quaternion_matrix(p1, p2, 50)
@@ -245,8 +246,8 @@ if __name__ == '__main__':
     print(RM)
     print(QM)
 
-    # for M in [RM, QM]:
-    #     print(M.dot(p))
+    for M in [RM, QM]:
+        print(M.dot(p))
     # print('RM: ', RM)
     # print('QM: ', QM)
     # print('RMP: ', np.dot(RM, p))
@@ -256,4 +257,3 @@ if __name__ == '__main__':
     # print("arbitraty rotation matrix = ", get_arbitrary_rotation_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
     # print(get_mirror_matrix('x', 'z'))
     # print("quaternion matrix = ", get_quaternion_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
-
