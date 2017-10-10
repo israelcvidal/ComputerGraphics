@@ -1,6 +1,8 @@
 import numpy as np
 import warnings
 import math
+from scipy.spatial.distance import euclidean
+from test import *
 
 
 def get_scale_matrix(e):
@@ -231,29 +233,3 @@ def transform_4d(point):
     else:
         raise Exception("Point must have 3 dimensions")
 
-
-if __name__ == '__main__':
-    p1 = np.array([1, 5, 3])
-
-    p2 = np.array([3, 10, 5])
-
-    p = np.array([4, 5, 0, 0])
-
-    RM = get_arbitrary_rotation_matrix(p1, p2, 50)
-    QM = get_quaternion_matrix(p1, p2, 50)
-    # R = get_rotation_matrix(axis='y', theta=50)
-    # print(R)
-    print(RM)
-    print(QM)
-
-    for M in [RM, QM]:
-        print(M.dot(p))
-    # print('RM: ', RM)
-    # print('QM: ', QM)
-    # print('RMP: ', np.dot(RM, p))
-    # print('QMP: ', np.dot(QM, p))
-    # print(get_rotation_matrix(theta=30, axis='y'))
-
-    # print("arbitraty rotation matrix = ", get_arbitrary_rotation_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
-    # print(get_mirror_matrix('x', 'z'))
-    # print("quaternion matrix = ", get_quaternion_matrix(p1=[0, 1, 0],  p2=[0, 2, 0], theta=30))
