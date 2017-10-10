@@ -2,7 +2,6 @@ import numpy as np
 import warnings
 import math
 from scipy.spatial.distance import euclidean
-from test import *
 
 
 def get_scale_matrix(e):
