@@ -158,7 +158,8 @@ def get_quaternion_matrix(p1, p2, theta):
                     [-q_[x], -q_[y], -q_[z], q_[w]]]
                     )
 
-    return compose_matrices([inverse_translation_matrix, L_q, R_q_, translation_matrix])
+    # return compose_matrices([inverse_translation_matrix, L_q, R_q_, translation_matrix])
+    return compose_matrices([L_q, R_q_])
 
 
 def get_translation_matrix(t):
@@ -195,7 +196,8 @@ def get_arbitrary_mirror_matrix(u, v):
 
     mirror_matrix = np.identity(4)
     mirror_matrix[:3, :3] = np.identity(3) - (2*np.dot(n, np.transpose(n)))
-    return compose_matrices([inverse_translation_matrix, mirror_matrix, translation_matrix])
+    # return compose_matrices([inverse_translation_matrix, mirror_matrix, translation_matrix])
+    return mirror_matrix
 
 
 # cisalhamento no eixo 'axis' esbarrando em 'direction'

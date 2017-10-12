@@ -26,6 +26,7 @@ def prova():
 
     N = np.cross((p3-p2)[0:3], (p4-p2)[:3])
     n = N/np.linalg.norm(N)
+    print("n: ", n)
     n_after = np.array([0, 0, -1])
     theta = np.rad2deg(math.acos(n.dot(n_after)))
 
@@ -43,11 +44,12 @@ def prova():
     alpha = np.rad2deg(math.acos(u_o_p3_.dot(u_o_p2)))
 
     rotation_z = get_rotation_matrix(-alpha, "z")
-    print("\nrotation z:")
+    print("\nrotation z - angle " + str(alpha))
     print(rotation_z)
 
     translation_o_p3 = get_translation_matrix(p3_[:3])
-
+    print("\ntranslation matrix: ")
+    print(translation_o_p3)
     matrix = compose_matrices([translation_o_p3,  rotation_z, quaternion_matrix, translation_p3_o])
 
     print("\npoints after transformation:")
@@ -56,6 +58,27 @@ def prova():
         points[i] = matrix.dot(p)
         print("p" + str(i+1) + ": ")
         print(points[i])
+
+    p1 = points[0]
+    p2 = points[1]
+    p3 = points[2]
+    p4 = points[3]
+
+    translation_p1_o = get_translation_matrix(-p1[:3])
+    translation_o_p1 = get_translation_matrix(p1[:3])
+
+    mirror_matrix = get_arbitrary_mirror_matrix((p2-p1)[:3], (p4-p1)[:3])
+    print("\ntranslation matrix: ")
+    print(translation_p1_o)
+
+    print("\nmirror matrix: ")
+    print(mirror_matrix)
+
+    print("\ninverse translation matrix:")
+    print(translation_o_p1)
+
+    print("\nreflexed p3_:")
+    print(compose_matrices([translation_o_p1, mirror_matrix, translation_p1_o]).dot(p3))
 
 
 if __name__ == '__main__':
