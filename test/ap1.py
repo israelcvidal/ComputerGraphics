@@ -1,14 +1,25 @@
 from transformation.transformation import *
 
 
-def prova():
-    p1 = np.array([0, 0, 0, 1])
-    p2 = np.array([0, 0, 11, 1])
-    p3 = np.array([4, 0, 0, 1])
-    p4 = np.array([0, 1, 0, 1])
-    p3_ = np.array([30, 50, 0, 1])
+def prova(matricula):
+    F, E, D, C, B, A = matricula
+    A = int(A)
+    B = int(B)
+    C = int(C)
+    D = int(D)
+    E = int(E)
+    F = int(F)
 
-    scale_matrix = get_scale_matrix(np.array([5*math.sqrt(2)/4, 5*math.sqrt(2), 5*math.sqrt(2)/11, 1]))
+    print(A,B,C,D,E,F)
+
+
+    p1 = np.array([0, 0, 0, 1])
+    p2 = np.array([0, 0, 2+A, 1])
+    p3 = np.array([3+B, 0, 0, 1])
+    p4 = np.array([0, 1+C, 0, 1])
+    p3_ = np.array([30*(1+D), 10*(2+F), 0, 1])
+
+    scale_matrix = get_scale_matrix(np.array([5*math.sqrt(2)/p3[0], 5*math.sqrt(2)/p4[1], 5*math.sqrt(2)/p2[2], 1]))
     print("scale matrix:\n", scale_matrix)
     p1 = scale_matrix.dot(p1)
     p2 = scale_matrix.dot(p2)
@@ -67,7 +78,7 @@ def prova():
     translation_p1_o = get_translation_matrix(-p1[:3])
     translation_o_p1 = get_translation_matrix(p1[:3])
 
-    mirror_matrix = get_arbitrary_mirror_matrix((p2-p1)[:3], (p4-p1)[:3])
+    mirror_matrix = get_arbitrary_mirror_matrix((p2-p1  )[:3], (p4-p1)[:3])
     print("\ntranslation matrix: ")
     print(translation_p1_o)
 
@@ -77,9 +88,18 @@ def prova():
     print("\ninverse translation matrix:")
     print(translation_o_p1)
 
-    print("\nreflexed p3_:")
-    print(compose_matrices([translation_o_p1, mirror_matrix, translation_p1_o]).dot(p3))
+    # # baricentro:
+    # b_x = (p1[0] + p2[0] + p4[0]) / 3
+    # b_y = (p1[1] + p2[1] + p4[1]) / 3
+    # b_z = (p1[2] + p2[2] + p4[2]) / 3
+    # # print(b_x, b_y, b_z)
+    # # print("\nreflexed baricentro:")
+
+    print(compose_matrices([translation_o_p1, mirror_matrix, translation_p1_o]).dot(p3_))
 
 
 if __name__ == '__main__':
-    prova()
+    matricula = "370019"
+    # matricula = "362955"
+    # matricula = "344077"
+    prova(matricula)
