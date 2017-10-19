@@ -1,4 +1,4 @@
-from transformation.transformation import *
+from transformations.model_transformations import *
 
 
 def prova(matricula):
@@ -63,7 +63,7 @@ def prova(matricula):
     print(translation_o_p3)
     matrix = compose_matrices([translation_o_p3,  rotation_z, quaternion_matrix, translation_p3_o])
 
-    print("\npoints after transformation:")
+    print("\npoints after transformations:")
     points = [p1, p2, p3, p4]
     for i, p in enumerate(points):
         points[i] = matrix.dot(p)
