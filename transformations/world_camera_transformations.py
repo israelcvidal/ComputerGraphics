@@ -1,0 +1,39 @@
+import numpy as np
+
+def get_world_camera_matrix(po, look_at, avup):
+    #Calculating ic, jc, and kc
+    k = po - look_at
+    kc = (k / np.linalg.norm(k))
+    vup = avup - po
+    i = np.cross(vup, kc)
+    ic = (i / np.linalg.norm(i))
+    jc = np.cross(kc, ic)
+
+    #Appending the last row [0 0 0 1] for the C->W Matrix
+    i_cw = np.append(ic, 0)
+    j_cw = np.append(jc, 0)
+    k_cw = np.append(kc, 0)
+    po_cw = np.append(po, 1)
+
+    #Stacking arrays as columns for the C->W Matrix
+    camera_world_matrix = np.column_stack((i_cw, j_cw, k_cw, po_cw))
+
+    #Appending the last column for the W->C Matrix
+    i_wc = np.append(ic, -np.dot(ic, po))
+    j_wc = np.append(jc, -np.dot(jc, po))
+    k_wc = np.append(kc, -np.dot(kc, po))
+    last_row = np.array([0, 0, 0, 1])
+    
+    #Stacking arrays as rows for the W->C Matrix
+    world_camera_matrix = np.vstack([i_wc, j_wc, k_wc, last_row])
+
+    return camera_world_matrix, world_camera_matrix
+
+
+if __name__ == '__main__':
+    po = np.array([1,1,2])
+    look_at = np.array([6,8,0])
+    avup = np.array([4,5,3])
+    cw, wc = get_world_camera_matrix(po, look_at, avup)
+    print(cw, "\n", wc)
+    
