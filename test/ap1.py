@@ -10,8 +10,7 @@ def prova(matricula):
     E = int(E)
     F = int(F)
 
-    print(A,B,C,D,E,F)
-
+    print(A, B, C, D, E, F)
 
     p1 = np.array([0, 0, 0, 1])
     p2 = np.array([0, 0, 2+A, 1])
@@ -78,7 +77,7 @@ def prova(matricula):
     translation_p1_o = get_translation_matrix(-p1[:3])
     translation_o_p1 = get_translation_matrix(p1[:3])
 
-    mirror_matrix = get_arbitrary_mirror_matrix((p2-p1  )[:3], (p4-p1)[:3])
+    mirror_matrix = get_arbitrary_mirror_matrix((p2-p1)[:3], (p4-p1)[:3])
     print("\ntranslation matrix: ")
     print(translation_p1_o)
 
@@ -87,13 +86,6 @@ def prova(matricula):
 
     print("\ninverse translation matrix:")
     print(translation_o_p1)
-
-    # # baricentro:
-    # b_x = (p1[0] + p2[0] + p4[0]) / 3
-    # b_y = (p1[1] + p2[1] + p4[1]) / 3
-    # b_z = (p1[2] + p2[2] + p4[2]) / 3
-    # # print(b_x, b_y, b_z)
-    # # print("\nreflexed baricentro:")
 
     print(compose_matrices([translation_o_p1, mirror_matrix, translation_p1_o]).dot(p3_))
 
