@@ -5,13 +5,19 @@ class Material(object):
         self.k_e_rgb = k_e_rgb
 
 
+class Face(object):
+    def __init__(self, face_id, vertices, material):
+        self.vertices = vertices
+        self.face_id = face_id
+        self.material = material
+
+
 class Obj(object):
     def __init__(self):
         self.vertex_id = 0
         self.face_id = 0
         self.vertices = {}
         self.faces = {}
-        self.materials = {}
 
     def add_vertex(self, x, y, z):
         """
@@ -29,7 +35,7 @@ class Obj(object):
         self.vertex_id += 1
         return id_
 
-    def add_face(self, e1, e2, e3):
+    def add_face(self, e1, e2, e3, material):
         """
         Creates a new face(adding do self.faces dictionary) composed by edges e1, e2 and e3
 
@@ -40,7 +46,9 @@ class Obj(object):
         """
 
         id_ = self.face_id
-        self.faces[id_] = [e1, e2, e3]
+
+        face = Face(id_, [e1, e2, e3], material)
+        self.faces[id_] = face
         self.face_id += 1
         return id_
 
