@@ -3,21 +3,23 @@ import math
 import sys
 from transformations import world_camera_transformations as wct
 
+
 class Scenario(object):
-    def __init__(self, objects=[], light_sources=[], po=None, look_at=None, avup=None):
+    def __init__(self, objects=[], light_sources=[], po=None, look_at=None, a_vup=None, background_color=None):
         """
 
         :param objects: list of all objects on the scenario
         :param light_sources: list of all light sources on the scenario
         :param po: observer(camera) location on world coordination
         :param look_at: loot at point
-        :param avup: view up point
+        :param a_vup: view up point
         """
         self.objects = objects
         self.light_sources = light_sources
         self.po = po
         self.look_at = look_at
-        self.avup = avup
+        self.avup = a_vup
+        self.backgroud_color = background_color
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         """
@@ -42,19 +44,23 @@ class Scenario(object):
             for j in range(pixels_width):
                 x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                 p[i, j] = np.array([x_i, y_i, -window_distance]).transpose()
-                p[i, j] = self.determine_color(p[i, j])
 
-    def determine_color(self, pij):
-        objects_not_cut = self.objects_culling(pij)
-        faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
-        p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+                # getting face  intercepted and point of intersection of ray pij
+                objects_not_cut = self.objects_culling(p[i, j])
+                faces_to_check_intersection = self.back_face_culling(objects_not_cut, p[i, j])
+                p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, p[i, j])
 
+                # if intercept any point
+                if p_int:
+                    # TODO
+                    # CHECK IF IT MAKES SENSE
+                    p[i, j] = self.determine_color(p[i, j], p_int, intersected_face)
+                else:
+                    p[i, j] = self.backgroud_color
+
+    def determine_color(self, pij, p_int, intersected_face):
         # TODO
-        for light_source in self.light_sources:
-            # determine rgb of pij
-            pij_rgb = [1, 1, 1]
-
-        return pij_rgb
+        pass
 
     def objects_culling(self, pij):
         """
@@ -128,12 +134,10 @@ class Scenario(object):
 
             if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
                 intersected_faces.append((t, face))
-
-        intersected_face = min(intersected_faces, key=lambda f: f[0])
-        return intersected_face[0]*pij, intersected_face[1]
-
-    def render(self):
-        pass
+        if intersected_faces:
+            intersected_face = min(intersected_faces, key=lambda f: f[0])
+            return intersected_face[0]*pij, intersected_face[1]
+        return None, None
 
     def transform_to_camera(self):
         wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.avup)
@@ -144,6 +148,13 @@ class Scenario(object):
                 camera_vertices.append(wc_matrix.dot(vertex))
             object_.vertices = camera_vertices
 
+        #TODO
+        # for light_source in self.light_sources:
+        #     camera_vertices = []
+        #     for vertex in object_.vertices:
+        #         camera_vertices.append(wc_matrix.dot(vertex))
+        #     object_.vertices = camera_vertices
+
     def transform_to_world(self):
         cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.avup)
 
@@ -152,6 +163,18 @@ class Scenario(object):
             for vertex in object_.vertices:
                 world_vertices.append(cw_matrix.dot(vertex))
             object_.vertices = world_vertices
+
+        # TODO
+        # for light_source in self.light_sources:
+        #     world_vertices = []
+        #     for vertex in object_.vertices:
+        #         world_vertices.append(cw_matrix.dot(vertex))
+        #     object_.vertices = world_vertices
+
+    # TODO
+    def render(self):
+        pass
+
 
 # TODO
 class LightSource(object):
