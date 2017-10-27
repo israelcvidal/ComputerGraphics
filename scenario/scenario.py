@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import sys
-
+from transformations import world_camera_transformations as wct
 
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None, avup=None):
@@ -33,6 +33,9 @@ class Scenario(object):
         delta_y = window_height / pixels_height
         # p = matrix of points corresponding to each pixel
         p = np.ones((pixels_width, pixels_height))
+
+        # transforming all objects to camera
+        self.transform_to_camera()
 
         for i in range(pixels_height):
             y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
@@ -132,16 +135,23 @@ class Scenario(object):
     def render(self):
         pass
 
-    # TODO
     def transform_to_camera(self):
-        # transform all objects to camera
-        pass
+        wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.avup)
 
-    # TODO
+        for object_ in self.objects:
+            camera_vertices = []
+            for vertex in object_.vertices:
+                camera_vertices.append(wc_matrix.dot(vertex))
+            object_.vertices = camera_vertices
+
     def transform_to_world(self):
-        # transform all objects to world
-        pass
+        cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.avup)
 
+        for object_ in self.objects:
+            world_vertices = []
+            for vertex in object_.vertices:
+                world_vertices.append(cw_matrix.dot(vertex))
+            object_.vertices = world_vertices
 
 # TODO
 class LightSource(object):
