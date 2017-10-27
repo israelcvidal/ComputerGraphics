@@ -1,3 +1,7 @@
+import numpy as np
+import math
+import sys
+
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None, avup=None):
         """
@@ -24,7 +28,95 @@ class Scenario(object):
         :param pixels_height: number of pixels we will have on height direction
         :return: matrix rgb to be rendered
         """
-        pass
+        delta_x = window_width / pixels_width
+        delta_y = window_height / pixels_height
+        # p = matrix of points corresponding to each pixel
+        p = np.ones((pixels_width, pixels_height))
+
+        for i in range(pixels_height):
+            y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+            for j in range(pixels_width):
+                x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                p[i, j] = np.array([x_i, y_i, -window_distance]).transpose()
+                p[i, j] = self.determine_color(p[i, j])
+
+    def determine_color(self, rij):
+        return 0
+
+    def objects_culling(self, pij):
+        """
+        Return objects that the ray intersects with their have intersection sphere(aura)
+        :param pij: point corresponding to a pixel ij
+        :return:
+        """
+
+        objects_not_cut = []
+
+        for object_ in self.objects:
+            vertices = np.array(object_.vertices.values())
+            min_x = min(vertices[:, 0])
+            max_x = max(vertices[:, 0])
+            min_y = min(vertices[:, 1])
+            max_y = max(vertices[:, 1])
+            min_z = min(vertices[:, 2])
+            max_z = max(vertices[:, 2])
+
+            center = [(max_x-min_x), (max_y-min_y), (max_z-min_z)]
+            radius = math.pow((max_x-center[0]), 2)+math.pow((max_y-center[1]), 2)+math.pow((max_z-center[2]), 2)
+            radius = math.sqrt(radius)
+            a = pij.dot(pij)
+            b = -2*(pij.dot(center))
+            c = center.dot(center)-math.pow(radius, 2)
+            if (math.pow(b, 2) - 4*a*c) >= 0:
+                objects_not_cut.append(object_)
+
+        return objects_not_cut
+
+    def back_face_culling(self, objects, pij):
+        """
+        Return list of faces from objects that might have intersection with the ray
+        :param objects:
+        :param pij:
+        :return:
+        """
+        faces_not_cut = []
+
+        pij_u = pij/np.linalg.norm(pij)
+        for object_ in objects:
+            for face in object_.faces.values():
+                if pij_u.dot(face.normal) < 0:
+                    faces_not_cut.append(face)
+
+        return faces_not_cut
+
+    def get_intersected_faces(self, faces, pij):
+        """
+        Returns witch faces have intersection with the ray and their point of intersection(t).
+        :param faces:
+        :return:
+        """
+        intersected_faces = []
+        for face in faces:
+            p1, p2, p3 = faces.vertices
+            t = face.normal.dot(p1)/face.normal.dot(pij)
+
+            # ray and plane intersection point
+            p = t*pij
+
+            # now we want to check if this point is inside the face
+            w1 = np.array(p1)-np.array(p)
+            w2 = np.array(p2)-np.array(p)
+            w3 = np.array(p3)-np.array(p)
+
+            # checking normal of each new triangle
+            n1 = np.cross(w1, w2)
+            n2 = np.cross(w2, w3)
+            n3 = np.cross(w3, w1)
+
+            if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+                intersected_faces.append(face)
+
+        return intersected_faces
 
     def render(self):
         pass
