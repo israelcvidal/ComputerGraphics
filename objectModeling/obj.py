@@ -6,10 +6,11 @@ class Material(object):
 
 
 class Face(object):
-    def __init__(self, face_id, vertices, material):
+    def __init__(self, face_id, vertices, material, normal):
         self.vertices = vertices
         self.face_id = face_id
         self.material = material
+        self.normal = normal
 
 
 class Obj(object):
@@ -44,13 +45,12 @@ class Obj(object):
         :param e3: edge 3 id
         :return: face's id
         """
-
         id_ = self.face_id
+        normal = (e3-e1).cross(e2-e1)
 
-        face = Face(id_, [e1, e2, e3], material)
+        face = Face(id_, [e1, e2, e3], material, normal)
         self.faces[id_] = face
         self.face_id += 1
         return id_
 
-    def add_material_to_face(self, face_id, material):
-        self.materials[face_id] = material
+
