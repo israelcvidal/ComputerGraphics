@@ -2,6 +2,7 @@ import numpy as np
 import math
 import sys
 
+
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None, avup=None):
         """
@@ -40,8 +41,17 @@ class Scenario(object):
                 p[i, j] = np.array([x_i, y_i, -window_distance]).transpose()
                 p[i, j] = self.determine_color(p[i, j])
 
-    def determine_color(self, rij):
-        return 0
+    def determine_color(self, pij):
+        objects_not_cut = self.objects_culling(pij)
+        faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
+        p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+
+        # TODO
+        for light_source in self.light_sources:
+            # determine rgb of pij
+            pij_rgb = [1, 1, 1]
+
+        return pij_rgb
 
     def objects_culling(self, pij):
         """
@@ -61,7 +71,7 @@ class Scenario(object):
             min_z = min(vertices[:, 2])
             max_z = max(vertices[:, 2])
 
-            center = [(max_x-min_x), (max_y-min_y), (max_z-min_z)]
+            center = np.array([(max_x-min_x), (max_y-min_y), (max_z-min_z)])
             radius = math.pow((max_x-center[0]), 2)+math.pow((max_y-center[1]), 2)+math.pow((max_z-center[2]), 2)
             radius = math.sqrt(radius)
             a = pij.dot(pij)
@@ -89,15 +99,15 @@ class Scenario(object):
 
         return faces_not_cut
 
-    def get_intersected_faces(self, faces, pij):
+    def get_intersected_face(self, faces, pij):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
         :param faces:
-        :return:
+        :return: point of intersection with the closest face and the face intersected
         """
         intersected_faces = []
         for face in faces:
-            p1, p2, p3 = faces.vertices
+            p1, p2, p3 = face.vertices
             t = face.normal.dot(p1)/face.normal.dot(pij)
 
             # ray and plane intersection point
@@ -114,33 +124,40 @@ class Scenario(object):
             n3 = np.cross(w3, w1)
 
             if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
-                intersected_faces.append(face)
+                intersected_faces.append((t, face))
 
-        return intersected_faces
+        intersected_face = min(intersected_faces, key=lambda f: f[0])
+        return intersected_face[0]*pij, intersected_face[1]
 
     def render(self):
         pass
 
+    # TODO
     def transform_to_camera(self):
         # transform all objects to camera
         pass
 
+    # TODO
     def transform_to_world(self):
         # transform all objects to world
         pass
 
 
+# TODO
 class LightSource(object):
     pass
 
 
+# TODO
 class PunctualLightSource(LightSource):
     pass
 
 
+# TODO
 class SpotLightSource(LightSource):
     pass
 
 
+# TODO
 class InfinityLightSource(LightSource):
     pass
