@@ -5,7 +5,7 @@ from transformations import world_camera_transformations as wct
 
 
 class Scenario(object):
-    def __init__(self, objects=[], light_sources=[], po=None, look_at=None, a_vup=None, background_color=None):
+    def __init__(self, objects=[], light_sources=[], po=None, look_at=None, a_vup=None, background_color=None, ambient_light=None):
         """
 
         :param objects: list of all objects on the scenario
@@ -20,6 +20,7 @@ class Scenario(object):
         self.look_at = look_at
         self.avup = a_vup
         self.backgroud_color = background_color
+        self.ambient_light = ambient_light
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         """
@@ -59,8 +60,18 @@ class Scenario(object):
                     p[i, j] = self.backgroud_color
 
     def determine_color(self, pij, p_int, intersected_face):
-        # TODO
-        pass
+        """
+        Return the RGB color for the pixel ij
+        :param pij: point corresponding to a pixel ij
+        :param p_int: point intersected
+        :intersected_face: face intersected by the ray
+        :return:
+        """
+        pij_rgb = intersected_face.material.k_a_rgb * self.ambient_light
+        for light_source in self.light_sources:
+            pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
+
+        return pij_rgb
 
     def objects_culling(self, pij):
         """
@@ -176,10 +187,62 @@ class Scenario(object):
         pass
 
 
-# TODO
 class LightSource(object):
-    pass
+    def __init__(self, intensity, attenuation, position):
+        """
 
+        :param intensity: light source intensity, between 0 and 1
+        :param attenuation: light attenuation for the specular reflection
+        :param position: position x,y,z of the light source
+        """
+        self.intensity = intensity
+        self.attenuation = attenuation
+        self.position = position
+
+    def get_total_intensity(face, p_int):
+        """
+        Return the sum of the diffuse and especular term
+        :param face: face intersected by the ray
+        :param p_int: point intersected
+        :return:
+        """
+        n, l, v, r = get_vectors(face, p_int)
+
+        k_d_rgb = face.material.k_d_rgb
+        k_e_rgb = face.material.k_e_rgb
+
+        diffuse_term = np.dot(n, l)
+        if(diffuse_term < 0):
+            diffuse_term = 0
+
+        especular_term = np.dot(v, r) ** self.attenuation
+        if(especular_term < 0):
+            especular_term = 0
+
+        i_obj = (((k_d_rgb * intensity) * (diffuse_term)) +
+                ((k_e_rgb * intensity) * (especular_term)))
+
+        return i_obj
+
+    def get_vectors(face, p_int):
+        """
+        Return the unitary vectors n, l, u and r
+        :param face: face intersected by the ray
+        :param p_int: point intersected
+        :return:
+        """
+        normal = face.normal
+        n_u = (normal / np.linalg.norm(normal))
+        
+        l = position - p_int
+        l_u = (l / np.linalg.norm(l))
+
+        v = -p_int
+        v_u = (v / np.linalg.norm(v))
+
+        r = 2 * (np.dot(l_u, n_u)) * n_u - l_u
+
+        return n_u, l_u, v_u, r
 
 # TODO
 class PunctualLightSource(LightSource):
