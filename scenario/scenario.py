@@ -2,6 +2,7 @@ import numpy as np
 import math
 import sys
 from transformations import world_camera_transformations as wct
+from objectModeling import obj
 
 
 class Scenario(object):
@@ -18,8 +19,8 @@ class Scenario(object):
         self.light_sources = light_sources
         self.po = po
         self.look_at = look_at
-        self.avup = a_vup
-        self.backgroud_color = background_color
+        self.a_vup = a_vup
+        self.background_color = background_color
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         """
@@ -34,7 +35,7 @@ class Scenario(object):
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
         # p = matrix of points corresponding to each pixel
-        p = np.ones((pixels_width, pixels_height))
+        p = np.ones((pixels_width, pixels_height), dtype=object)
 
         # transforming all objects to camera
         self.transform_to_camera()
@@ -42,21 +43,24 @@ class Scenario(object):
         for i in range(pixels_height):
             y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
             for j in range(pixels_width):
+
                 x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                p[i, j] = np.array([x_i, y_i, -window_distance]).transpose()
+
+                pij = np.array([x_i, y_i, -window_distance])
 
                 # getting face  intercepted and point of intersection of ray pij
-                objects_not_cut = self.objects_culling(p[i, j])
-                faces_to_check_intersection = self.back_face_culling(objects_not_cut, p[i, j])
-                p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, p[i, j])
-
+                objects_not_cut = self.objects_culling(pij)
+                faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
+                p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+                print(p_int, intersected_face)
                 # if intercept any point
                 if p_int:
                     # TODO
                     # CHECK IF IT MAKES SENSE
-                    p[i, j] = self.determine_color(p[i, j], p_int, intersected_face)
+                    p[i][j] = self.determine_color(pij, p_int, intersected_face)
                 else:
-                    p[i, j] = self.backgroud_color
+                    p[i][j] = self.background_color
+        return p
 
     def determine_color(self, pij, p_int, intersected_face):
         # TODO
@@ -72,7 +76,7 @@ class Scenario(object):
         objects_not_cut = []
 
         for object_ in self.objects:
-            vertices = np.array(object_.vertices.values())
+            vertices = np.array(list(object_.vertices.values()))
             min_x = min(vertices[:, 0])
             max_x = max(vertices[:, 0])
             min_y = min(vertices[:, 1])
@@ -116,8 +120,13 @@ class Scenario(object):
         """
         intersected_faces = []
         for face in faces:
-            p1, p2, p3 = face.vertices
-            t = face.normal.dot(p1)/face.normal.dot(pij)
+            p1, p2, p3 = face.vertices.values()
+            normal = face.normal[:3]
+            p1 = p1[:3]
+            p2 = p2[:3]
+            p3 = p3[:3]
+
+            t = np.dot(normal, p1[:3])/np.dot(normal, pij[:3])
 
             # ray and plane intersection point
             p = t*pij
@@ -131,7 +140,7 @@ class Scenario(object):
             n1 = np.cross(w1, w2)
             n2 = np.cross(w2, w3)
             n3 = np.cross(w3, w1)
-
+            print(p)
             if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
                 intersected_faces.append((t, face))
         if intersected_faces:
@@ -140,13 +149,16 @@ class Scenario(object):
         return None, None
 
     def transform_to_camera(self):
-        wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.avup)
-
+        wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.a_vup)
+        # print(wc_matrix)
         for object_ in self.objects:
-            camera_vertices = []
-            for vertex in object_.vertices:
-                camera_vertices.append(wc_matrix.dot(vertex))
-            object_.vertices = camera_vertices
+            camera_vertices = [wc_matrix.dot(vertex) for vertex in object_.vertices.values()]
+            for key in object_.vertices.keys():
+                # print(key)
+                object_.vertices[key] = camera_vertices[key]
+                # print(object_.vertices[key])
+
+            object_.update_faces()
 
         #TODO
         # for light_source in self.light_sources:
@@ -156,7 +168,7 @@ class Scenario(object):
         #     object_.vertices = camera_vertices
 
     def transform_to_world(self):
-        cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.avup)
+        cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.a_vup)
 
         for object_ in self.objects:
             world_vertices = []
@@ -194,3 +206,28 @@ class SpotLightSource(LightSource):
 # TODO
 class InfinityLightSource(LightSource):
     pass
+
+
+def main():
+    po = [7.0, 1.8, 2.5, 1.0]
+    look_at = [5.0, 0.75, 2.5, 1.0]
+    a_vup = [5.0, 1.75, 2.5, 1.0]
+    d = 0.7
+    window_height = 0.5
+    window_width = 0.5
+    pixels_height = 500
+    pixels_width = 500
+
+    triangle = obj.Obj()
+    p1 = triangle.add_vertex(6.79, 1.12, 3.0)
+    p2 = triangle.add_vertex(6.52, 1.0, 2.0)
+    p3 = triangle.add_vertex(6.27, 2.55, 2.5)
+    face = triangle.add_face(p1, p2, p3, obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1]))
+
+    scenario = Scenario([triangle], [], po, look_at, a_vup, [0, 0, 0])
+
+    print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
+
+
+if __name__ == '__main__':
+    main()

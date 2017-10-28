@@ -5,9 +5,9 @@ def get_world_camera_matrix(po, look_at, avup):
     ic, jc, kc = get_ijk(po, look_at, avup)
 
     # Appending the last column for the W->C Matrix
-    i_wc = np.append(ic, -np.dot(ic, po))
-    j_wc = np.append(jc, -np.dot(jc, po))
-    k_wc = np.append(kc, -np.dot(kc, po))
+    i_wc = np.append(ic, -np.dot(ic, po[:3]))
+    j_wc = np.append(jc, -np.dot(jc, po[:3]))
+    k_wc = np.append(kc, -np.dot(kc, po[:3]))
     last_row = np.array([0, 0, 0, 1])
     
     # Stacking arrays as rows for the W->C Matrix
@@ -31,11 +31,14 @@ def get_camera_world_matrix(po, look_at, avup):
     return camera_world_matrix
 
 
-def get_ijk(po, look_at, avup):
+def get_ijk(po, look_at, a_vup):
     # Calculating ic, jc, and kc
+    po = np.array(po[:3])
+    look_at = np.array(look_at[:3])
+    a_vup = np.array(a_vup[:3])
     k = po - look_at
     kc = (k / np.linalg.norm(k))
-    vup = avup - po
+    vup = a_vup - po
     i = np.cross(vup, kc)
     ic = (i / np.linalg.norm(i))
     jc = np.cross(kc, ic)
