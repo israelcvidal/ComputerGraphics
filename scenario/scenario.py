@@ -58,17 +58,16 @@ class Scenario(object):
                 if p_int:
                     # TODO
                     # CHECK IF IT MAKES SENSE
-                    p[i][j] = self.determine_color(pij, p_int, intersected_face)
+                    p[i][j] = self.determine_color(p_int, intersected_face)
                 else:
                     p[i][j] = self.background_color
         return p
 
-    def determine_color(self, pij, p_int, intersected_face):
+    def determine_color(self, p_int, intersected_face):
         """
         Return the RGB color for the pixel ij
-        :param pij: point corresponding to a pixel ij
         :param p_int: point intersected
-        :intersected_face: face intersected by the ray
+        :param intersected_face: face intersected by the ray
         :return:
         """
         pij_rgb = intersected_face.material.k_a_rgb * self.ambient_light
@@ -127,7 +126,8 @@ class Scenario(object):
     def get_intersected_face(self, faces, pij):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
-        :param faces:
+        :param faces: list of faces
+        :param pij: point where the ray starts
         :return: point of intersection with the closest face and the face intersected
         """
         intersected_faces = []
@@ -152,7 +152,7 @@ class Scenario(object):
             n1 = np.cross(w1, w2)
             n2 = np.cross(w2, w3)
             n3 = np.cross(w3, w1)
-            print(p)
+
             if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
                 intersected_faces.append((t, face))
         if intersected_faces:
@@ -169,12 +169,8 @@ class Scenario(object):
 
             object_.update_faces()
 
-            # TODO
-            # for light_source in self.light_sources:
-            #     camera_vertices = []
-            #     for vertex in object_.vertices:
-            #         camera_vertices.append(wc_matrix.dot(vertex))
-            #     object_.vertices = camera_vertices
+        for light_source in self.light_sources:
+            light_source.position = wc_matrix.dot(light_source.position)
 
     def transform_to_world(self):
         cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.a_vup)
@@ -186,12 +182,8 @@ class Scenario(object):
 
             object_.update_faces()
 
-            # TODO
-            # for light_source in self.light_sources:
-            #     world_vertices = []
-            #     for vertex in object_.vertices:
-            #         world_vertices.append(cw_matrix.dot(vertex))
-            #     object_.vertices = world_vertices
+            for light_source in self.light_sources:
+                light_source.position = cw_matrix.dot(light_source.position)
 
     # TODO
     def render(self):
@@ -199,47 +191,15 @@ class Scenario(object):
 
 
 class LightSource(object):
-    def __init__(self, intensity, attenuation):
+    def __init__(self, intensity, attenuation, position, direction=None):
         """
         :param intensity: light source intensity, between 0 and 1
         :param attenuation: light attenuation for the specular reflection
         """
         self.intensity = intensity
         self.attenuation = attenuation
-
-
-class PunctualLightSource(LightSource):
-    def __init__(self, intensity, attenuation, position):
-        """
-        :param intensity: light source intensity, between 0 and 1
-        :param attenuation: light attenuation for the specular reflection
-        :param position: position x,y,z of the light source
-        """
-        LightSource.__init__(self, intensity, attenuation)
         self.position = position
-
-    def get_total_intensity(self, face, p_int):
-        """
-        Return the sum of the diffuse and especular term
-        :param face: face intersected by the ray
-        :param p_int: point intersected
-        :return:
-        """
-        n, l, v, r = self.get_vectors(face, p_int)
-
-        k_d_rgb = face.material.k_d_rgb
-        k_e_rgb = face.material.k_e_rgb
-
-        diffuse_term = n.dot(l)
-        diffuse_term = max(0, diffuse_term)
-
-        especular_term = np.dot(v, r) ** self.attenuation
-        especular_term = max(0, especular_term)
-
-        i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
-                 ((k_e_rgb * self.intensity) * especular_term))
-
-        return i_obj
+        self.direction = direction
 
     def get_vectors(self, face, p_int):
         """
@@ -260,6 +220,39 @@ class PunctualLightSource(LightSource):
 
         return n_u, l_u, v_u, r
 
+    def get_total_intensity(self, face, p_int):
+        """
+        Return the sum of the diffuse and especular term
+        :param face: face intersected by the ray
+        :param p_int: point intersected
+        :return:
+        """
+        n, l, v, r = self.get_vectors(face, p_int)
+
+        k_d_rgb = face.material.k_d_rgb
+        k_e_rgb = face.material.k_e_rgb
+
+        diffuse_term = n.dot(l)
+        diffuse_term = max(0, diffuse_term)
+
+        specular_term = np.dot(v, r) ** self.attenuation
+        specular_term = max(0, specular_term)
+
+        i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
+                 ((k_e_rgb * self.intensity) * specular_term))
+
+        return i_obj
+
+
+class PunctualLightSource(LightSource):
+    def __init__(self, intensity, attenuation, position):
+        """
+        :param intensity: light source intensity, between 0 and 1
+        :param attenuation: light attenuation for the specular reflection
+        :param position: position x,y,z of the light source
+        """
+        super().__init__(intensity, attenuation, position, None)
+
 
 class SpotLightSource(LightSource):
     def __init__(self, intensity, attenuation, position, direction, theta):
@@ -270,9 +263,7 @@ class SpotLightSource(LightSource):
         :param direction: direction vector of the light
         :param theta: limit angle at which light from source can be seen
         """
-        LightSource.__init__(self, intensity, attenuation)
-        self.position = position
-        self.direction = direction
+        super().__init__(intensity, attenuation, position, direction)
         self.theta = theta
 
     def get_total_intensity(self, face, p_int):
@@ -287,39 +278,20 @@ class SpotLightSource(LightSource):
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
 
-        spot_intensity = np.dot(direction, (-l))
-        if(spot_intensity < math.cos(theta)):
+        spot_intensity = np.dot(self.direction, -l)
+        if spot_intensity < math.cos(self.theta):
             spot_intensity = 0
 
         diffuse_term = spot_intensity * n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        especular_term = spot_intensity * (np.dot(v, r) ** self.attenuation)
-        especular_term = max(0, especular_term)
+        specular_term = spot_intensity * (np.dot(v, r) ** self.attenuation)
+        specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
-                 ((k_e_rgb * self.intensity) * especular_term))
+                 ((k_e_rgb * self.intensity) * specular_term))
 
         return i_obj
-
-    def get_vectors(self, face, p_int):
-        """
-        Return the unitary vectors n, l, u and r
-        :param face: face intersected by the ray
-        :param p_int: point intersected
-        :return:
-        """
-        n_u = face.normal
-
-        l = self.position - p_int
-        l_u = (l / np.linalg.norm(l))
-
-        v = -p_int
-        v_u = (v / np.linalg.norm(v))
-
-        r = 2 * (np.dot(l_u, n_u)) * n_u - l_u
-
-        return n_u, l_u, v_u, r
 
 
 class InfinityLightSource(LightSource):
@@ -329,31 +301,7 @@ class InfinityLightSource(LightSource):
         :param attenuation: light attenuation for the specular reflection
         :param direction: direction vector of the light
         """
-        LightSource.__init__(self, intensity, attenuation)
-        self.direction = direction
-
-    def get_total_intensity(self, face, p_int):
-        """
-        Return the sum of the diffuse and especular term
-        :param face: face intersected by the ray
-        :param p_int: point intersected
-        :return:
-        """
-        n, l, v, r = self.get_vectors(face, p_int)
-
-        k_d_rgb = face.material.k_d_rgb
-        k_e_rgb = face.material.k_e_rgb
-
-        diffuse_term = n.dot(l)
-        diffuse_term = max(0, diffuse_term)
-
-        especular_term = np.dot(v, r) ** self.attenuation
-        especular_term = max(0, especular_term)
-
-        i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
-                 ((k_e_rgb * self.intensity) * especular_term))
-
-        return i_obj
+        super().__init__(intensity=intensity, attenuation=attenuation, position=None, direction=direction)
 
     def get_vectors(self, face, p_int):
         """
