@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
-                 a_vup=None, background_color=[0, 0, 0], ambient_light=[1, 1, 1]):
+                 a_vup=None, background_color=[0.0, 0.0, 0.0], ambient_light=[1.0, 1.0, 1.0]):
         """
 
         :param objects: list of all objects on the scenario
@@ -23,7 +23,7 @@ class Scenario(object):
         self.look_at = look_at
         self.a_vup = a_vup
         self.background_color = background_color
-        self.ambient_light = ambient_light
+        self.ambient_light = np.array(ambient_light)
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         """
@@ -56,7 +56,7 @@ class Scenario(object):
                 faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
                 p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
                 # if intercept any point
-                if p_int:
+                if type(p_int).__module__ == np.__name__:
                     # TODO
                     # CHECK IF IT MAKES SENSE
                     p[i][j] = self.determine_color(p_int, intersected_face)
@@ -117,6 +117,7 @@ class Scenario(object):
         faces_not_cut = []
 
         pij_u = pij / np.linalg.norm(pij)
+        pij_u = np.append(pij_u, [1])
         for object_ in objects:
             for face in object_.faces.values():
                 if pij_u.dot(face.normal) < 0:
@@ -171,7 +172,8 @@ class Scenario(object):
             object_.update_faces()
 
         for light_source in self.light_sources:
-            light_source.position = wc_matrix.dot(light_source.position)
+            if type(light_source) is not InfinityLightSource:
+                light_source.position = wc_matrix.dot(light_source.position)
 
     def transform_to_world(self):
         cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.a_vup)
@@ -183,8 +185,8 @@ class Scenario(object):
 
             object_.update_faces()
 
-            for light_source in self.light_sources:
-                light_source.position = cw_matrix.dot(light_source.position)
+        for light_source in self.light_sources:
+            light_source.position = cw_matrix.dot(light_source.position)
 
     # TODO
     def render(self, window_width, window_height, window_distance, pixels_width, pixels_height):
@@ -198,10 +200,10 @@ class LightSource(object):
         :param intensity: light source intensity, between 0 and 1
         :param attenuation: light attenuation for the specular reflection
         """
-        self.intensity = intensity
+        self.intensity = np.array(intensity)
         self.attenuation = attenuation
-        self.position = position
-        self.direction = direction
+        self.position = np.append(position, 1)
+        self.direction = np.array(direction)
 
     def get_vectors(self, face, p_int):
         """
@@ -210,9 +212,9 @@ class LightSource(object):
         :param p_int: point intersected
         :return:
         """
-        n_u = face.normal
+        n_u = face.normal[:3]
 
-        l = self.position - p_int
+        l = self.position[:3] - p_int
         l_u = (l / np.linalg.norm(l))
 
         v = -p_int
@@ -224,7 +226,7 @@ class LightSource(object):
 
     def get_total_intensity(self, face, p_int):
         """
-        Return the sum of the diffuse and especular term
+        Return the sum of the diffuse and specular term
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
@@ -270,7 +272,7 @@ class SpotLightSource(LightSource):
 
     def get_total_intensity(self, face, p_int):
         """
-        Return the sum of the diffuse and especular term
+        Return the sum of the diffuse and specular term
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
@@ -280,7 +282,7 @@ class SpotLightSource(LightSource):
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
 
-        spot_intensity = np.dot(self.direction, -l)
+        spot_intensity = self.direction.dot(-l)
         if spot_intensity < math.cos(self.theta):
             spot_intensity = 0
 
@@ -312,7 +314,7 @@ class InfinityLightSource(LightSource):
         :param p_int: point intersected
         :return:
         """
-        n_u = face.normal
+        n_u = face.normal[:3]
 
         l = -self.direction
         l_u = (l / np.linalg.norm(l))
@@ -326,22 +328,50 @@ class InfinityLightSource(LightSource):
         
 
 def main():
-    po = [7.0, 1.8, 2.5, 1.0]
-    look_at = [5.0, 0.75, 2.5, 1.0]
-    a_vup = [5.0, 1.75, 2.5, 1.0]
+    po = [7.0, 7.0, 7.0, 1.0]
+    look_at = [2.5, 2.5, 2.5, 1.0]
+    a_vup = [7.0, 9.5, 2.5, 1.0]
     d = 0.7
     window_height = 0.5
     window_width = 0.5
-    pixels_height = 500
-    pixels_width = 500
+    pixels_height = 300
+    pixels_width = 300
 
-    triangle = obj.Obj()
-    p1 = triangle.add_vertex(6.79, 1.12, 3.0)
-    p2 = triangle.add_vertex(6.52, 1.0, 2.0)
-    p3 = triangle.add_vertex(6.27, 2.55, 2.5)
-    face = triangle.add_face(p1, p2, p3, obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1]))
+    #triangle = obj.Obj()
+    #p1 = triangle.add_vertex(6.79, 1.12, 3.0)
+    #p2 = triangle.add_vertex(6.52, 1.0, 2.0)
+    #p3 = triangle.add_vertex(6.27, 2.55, 2.5)
+    #face = triangle.add_face(p1, p2, p3, obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1]))
 
-    scenario = Scenario([triangle], [], po, look_at, a_vup, [0, 0, 0])
+    material = obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1])
+
+    cube = obj.Obj()
+    v1 = cube.add_vertex(0.0, 0.0, 0.0)
+    v2 = cube.add_vertex(5.0, 0.0, 0.0)
+    v3 = cube.add_vertex(0.0, 5.0, 0.0)
+    v4 = cube.add_vertex(5.0, 5.0, 0.0)
+    v5 = cube.add_vertex(0.0, 0.0, 5.0)
+    v6 = cube.add_vertex(5.0, 0.0, 5.0)
+    v7 = cube.add_vertex(0.0, 5.0, 5.0)
+    v8 = cube.add_vertex(5.0, 5.0, 5.0)
+    cube.add_face(v1, v4, v2, material)
+    cube.add_face(v1, v3, v4, material)
+    cube.add_face(v2, v8, v6, material)
+    cube.add_face(v2, v4, v8, material)
+    cube.add_face(v5, v6, v8, material)
+    cube.add_face(v5, v8, v7, material)
+    cube.add_face(v1, v5, v7, material)
+    cube.add_face(v1, v7, v3, material)
+    cube.add_face(v1, v2, v6, material)
+    cube.add_face(v1, v6, v5, material)
+    cube.add_face(v3, v7, v8, material)
+    cube.add_face(v3, v8, v4, material)
+
+    punctual_light = PunctualLightSource([0.7, 0.7, 0.7], 1, [10.0, 10.0, 10.0])
+    spot_light = SpotLightSource([0.8, 0.8, 0.8], 1, [10.0, 10.0, 10.0], [5.0, 5.0, 5.0], 60.0)
+    infinity_light = InfinityLightSource([0.9, 0.9, 0.9], 1, [5.0, 5.0, 5.0])
+
+    scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
 
     # print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
