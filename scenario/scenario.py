@@ -3,11 +3,12 @@ import math
 import sys
 from transformations import world_camera_transformations as wct
 from objectModeling import obj
+import matplotlib.pyplot as plt
 
 
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
-                 a_vup=None, background_color=None, ambient_light=None):
+                 a_vup=None, background_color=[0, 0, 0], ambient_light=[1, 1, 1]):
         """
 
         :param objects: list of all objects on the scenario
@@ -37,7 +38,7 @@ class Scenario(object):
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
         # p = matrix of points corresponding to each pixel
-        p = np.ones((pixels_width, pixels_height), dtype=object)
+        p = np.ones((pixels_width, pixels_height, 3))
 
         # transforming all objects to camera
         self.transform_to_camera()
@@ -186,9 +187,10 @@ class Scenario(object):
                 light_source.position = cw_matrix.dot(light_source.position)
 
     # TODO
-    def render(self):
-        pass
-
+    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height):
+        scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height)
+        plt.imshow(scenario)
+        plt.show()
 
 class LightSource(object):
     def __init__(self, intensity, attenuation, position, direction=None):
@@ -341,7 +343,8 @@ def main():
 
     scenario = Scenario([triangle], [], po, look_at, a_vup, [0, 0, 0])
 
-    print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
+    # print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height)
 
 
 if __name__ == '__main__':
