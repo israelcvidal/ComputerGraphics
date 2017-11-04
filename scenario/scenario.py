@@ -328,14 +328,14 @@ class InfinityLightSource(LightSource):
         
 
 def main():
-    po = [7.0, 7.0, 7.0, 1.0]
-    look_at = [2.5, 2.5, 2.5, 1.0]
-    a_vup = [7.0, 9.5, 2.5, 1.0]
-    d = 0.7
+    po = [5.0, 0.0, 3.0, 1.0]
+    look_at = [-5.0, 0.0, -1.0, 1.0]
+    a_vup = [-5.0, 0.0, 1.0, 1.0]
+    d = 1.0
     window_height = 0.5
     window_width = 0.5
-    pixels_height = 300
-    pixels_width = 300
+    pixels_height = 200
+    pixels_width = 200
 
     #triangle = obj.Obj()
     #p1 = triangle.add_vertex(6.79, 1.12, 3.0)
@@ -347,13 +347,13 @@ def main():
 
     cube = obj.Obj()
     v1 = cube.add_vertex(0.0, 0.0, 0.0)
-    v2 = cube.add_vertex(5.0, 0.0, 0.0)
-    v3 = cube.add_vertex(0.0, 5.0, 0.0)
-    v4 = cube.add_vertex(5.0, 5.0, 0.0)
-    v5 = cube.add_vertex(0.0, 0.0, 5.0)
-    v6 = cube.add_vertex(5.0, 0.0, 5.0)
-    v7 = cube.add_vertex(0.0, 5.0, 5.0)
-    v8 = cube.add_vertex(5.0, 5.0, 5.0)
+    v2 = cube.add_vertex(1.0, 0.0, 0.0)
+    v3 = cube.add_vertex(0.0, 1.0, 0.0)
+    v4 = cube.add_vertex(1.0, 1.0, 0.0)
+    v5 = cube.add_vertex(0.0, 0.0, 1.0)
+    v6 = cube.add_vertex(1.0, 0.0, 1.0)
+    v7 = cube.add_vertex(0.0, 1.0, 1.0)
+    v8 = cube.add_vertex(1.0, 1.0, 1.0)
     cube.add_face(v1, v4, v2, material)
     cube.add_face(v1, v3, v4, material)
     cube.add_face(v2, v8, v6, material)
@@ -367,9 +367,9 @@ def main():
     cube.add_face(v3, v7, v8, material)
     cube.add_face(v3, v8, v4, material)
 
-    punctual_light = PunctualLightSource([0.7, 0.7, 0.7], 1, [10.0, 10.0, 10.0])
+    punctual_light = PunctualLightSource([0.7, 0.7, 0.7], 1, [3.5, 3.5, 3.5])
     spot_light = SpotLightSource([0.8, 0.8, 0.8], 1, [10.0, 10.0, 10.0], [5.0, 5.0, 5.0], 60.0)
-    infinity_light = InfinityLightSource([0.9, 0.9, 0.9], 1, [5.0, 5.0, 5.0])
+    infinity_light = InfinityLightSource([0.9, 0.9, 0.9], 1, [1.0, 1.0, 1.0])
 
     scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
 
