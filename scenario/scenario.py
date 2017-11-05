@@ -86,7 +86,7 @@ class Scenario(object):
         objects_not_cut = []
 
         for object_ in self.objects:
-            vertices = np.array(object_.vertices)
+            vertices = np.array([vertex.coordinates for vertex in object_.vertices])
             min_x = min(vertices[:, 0])
             max_x = max(vertices[:, 0])
             min_y = min(vertices[:, 1])
@@ -135,9 +135,9 @@ class Scenario(object):
         for face in faces:
             p1, p2, p3 = face.vertices
             normal = face.normal[:3]
-            p1 = p1[:3]
-            p2 = p2[:3]
-            p3 = p3[:3]
+            p1 = p1.coordinates[:3]
+            p2 = p2.coordinates[:3]
+            p3 = p3.coordinates[:3]
 
             t = np.dot(normal, p1[:3]) / np.dot(normal, pij[:3])
 
@@ -170,8 +170,9 @@ class Scenario(object):
     def transform_to_camera(self):
         wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.a_vup)
         for object_ in self.objects:
-            object_.vertices = [wc_matrix.dot(vertex) for vertex in object_.vertices]
-            object_.update_faces()
+            for vertex in object_.vertices:
+                vertex.coordinates = wc_matrix.dot(vertex.coordinates)
+            object_.calculate_normals()
 
         for light_source in self.light_sources:
             if type(light_source) is not InfinityLightSource:
@@ -181,13 +182,13 @@ class Scenario(object):
         cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.a_vup)
 
         for object_ in self.objects:
-            object_.vertices = [cw_matrix.dot(vertex) for vertex in object_.vertices]
-            object_.update_faces()
+            for vertex in object_.vertices:
+                vertex.coordinates = cw_matrix.dot(vertex.coordinates)
+            object_.calculate_normals()
 
         for light_source in self.light_sources:
             light_source.position = cw_matrix.dot(light_source.position)
 
-    # TODO
     def render(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height)
         plt.imshow(scenario)

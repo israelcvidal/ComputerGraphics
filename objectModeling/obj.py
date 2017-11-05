@@ -9,11 +9,24 @@ class Material(object):
         self.attenuation = attenuation
 
 
+class Vertex(object):
+    def __init__(self, vertex_id, coordinates):
+        self.vertex_id = vertex_id
+        self.coordinates = coordinates
+
+
 class Face(object):
     def __init__(self, face_id, vertices, material, normal):
         self.vertices = vertices
         self.face_id = face_id
         self.material = material
+        self.normal = normal
+
+    def calculate_normal(self):
+        p1, p2, p3 = self.vertices
+        normal = np.cross((p3.coordinates - p1.coordinates)[:3], (p2.coordinates - p1.coordinates)[:3])
+        normal = normal / np.linalg.norm(normal)
+        normal = np.append(normal, [0])
         self.normal = normal
 
 
@@ -33,10 +46,12 @@ class Obj(object):
         :param z: coordinate z
         :return: vertex's id
         """
-        self.vertices.append([x, y, z, 1])
-        return len(self.vertices)-1
+        vertex_id = len(self.vertices)
+        vertex = Vertex(vertex_id, [x, y, z, 1])
+        self.vertices.append(vertex)
+        return vertex
 
-    def add_face(self, p1_id, p2_id, p3_id, material):
+    def add_face(self, v1, v2, v3, material):
         """
         Creates a new face(adding do self.faces dictionary) composed by edges p1, e2 and p3
 
@@ -46,26 +61,14 @@ class Obj(object):
         :param material: material of the face
         :return: face's id
         """
-        p1 = np.array(self.vertices[p1_id])
-        p2 = np.array(self.vertices[p2_id])
-        p3 = np.array(self.vertices[p3_id])
-
         id_ = len(self.faces)
-        face = Face(id_, {p1_id: p1, p2_id: p2, p3_id: p3}, material, None)
+        face = Face(id_, [v1, v2, v3], material, None)
         self.faces.append(face)
-        return id_
+        return face
 
-    def update_faces(self):
+    def calculate_normals(self):
         for face in self.faces:
-            p1_id, p2_id, p3_id = face.vertices
-            p1 = self.vertices[p1_id]
-            p2 = self.vertices[p2_id]
-            p3 = self.vertices[p3_id]
-            normal = np.cross((p3 - p1)[:3], (p2 - p1)[:3])
-            normal = normal / np.linalg.norm(normal)
-            normal = np.append(normal, [0])
-            face.normal = normal
-            face.vertices = [p1, p2, p3]
+            face.calculate_normal()
 
     def get_face(self, face_id):
         return self.faces[face_id]
