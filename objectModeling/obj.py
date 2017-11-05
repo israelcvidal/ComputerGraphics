@@ -2,10 +2,11 @@ import numpy as np
 
 
 class Material(object):
-    def __init__(self, k_a_rgb, k_d_rgb, k_e_rgb):
+    def __init__(self, k_a_rgb, k_d_rgb, k_e_rgb, attenuation):
         self.k_a_rgb = k_a_rgb
         self.k_d_rgb = k_d_rgb
         self.k_e_rgb = k_e_rgb
+        self.attenuation = attenuation
 
 
 class Face(object):

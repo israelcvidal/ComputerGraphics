@@ -194,15 +194,14 @@ class Scenario(object):
         plt.imshow(scenario)
         plt.show()
 
+
 class LightSource(object):
-    def __init__(self, intensity, attenuation, position, direction=None):
+    def __init__(self, intensity, position, direction=None):
         """
         :param intensity: light source intensity, between 0 and 1
-        :param attenuation: light attenuation for the specular reflection
         """
         self.intensity = np.array(intensity)
-        self.attenuation = attenuation
-        self.position = np.append(position, 1)
+        self.position = np.append(position, [1])
         self.direction = np.array(direction)
 
     def get_vectors(self, face, p_int):
@@ -239,7 +238,7 @@ class LightSource(object):
         diffuse_term = n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        specular_term = np.dot(v, r) ** self.attenuation
+        specular_term = np.dot(v, r) ** face.attenuation
         specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
@@ -249,17 +248,17 @@ class LightSource(object):
 
 
 class PunctualLightSource(LightSource):
-    def __init__(self, intensity, attenuation, position):
+    def __init__(self, intensity, position):
         """
         :param intensity: light source intensity, between 0 and 1
         :param attenuation: light attenuation for the specular reflection
         :param position: position x,y,z of the light source
         """
-        super().__init__(intensity, attenuation, position, None)
+        super().__init__(intensity, position, None)
 
 
 class SpotLightSource(LightSource):
-    def __init__(self, intensity, attenuation, position, direction, theta):
+    def __init__(self, intensity, position, direction, theta):
         """
         :param intensity: light source intensity, between 0 and 1
         :param attenuation: light attenuation for the specular reflection
@@ -267,7 +266,7 @@ class SpotLightSource(LightSource):
         :param direction: direction vector of the light
         :param theta: limit angle at which light from source can be seen
         """
-        super().__init__(intensity, attenuation, position, direction)
+        super().__init__(intensity, position, direction)
         self.theta = theta
 
     def get_total_intensity(self, face, p_int):
@@ -289,7 +288,7 @@ class SpotLightSource(LightSource):
         diffuse_term = spot_intensity * n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        specular_term = spot_intensity * (np.dot(v, r) ** self.attenuation)
+        specular_term = spot_intensity * (np.dot(v, r) ** face.attenuation)
         specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
@@ -299,13 +298,13 @@ class SpotLightSource(LightSource):
 
 
 class InfinityLightSource(LightSource):
-    def __init__(self, intensity, attenuation, direction):
+    def __init__(self, intensity, direction):
         """
         :param intensity: light source intensity, between 0 and 1
         :param attenuation: light attenuation for the specular reflection
         :param direction: direction vector of the light
         """
-        super().__init__(intensity=intensity, attenuation=attenuation, position=None, direction=direction)
+        super().__init__(intensity=intensity, position=None, direction=direction)
 
     def get_vectors(self, face, p_int):
         """
@@ -331,9 +330,9 @@ def main():
     po = [0.5, 0.5, 5.0, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
-    d = 1.0
-    window_height = 0.5
-    window_width = 0.5
+    d = 2.0
+    window_height = 200
+    window_width = 200
     pixels_height = 200
     pixels_width = 200
 
@@ -343,12 +342,12 @@ def main():
     #p3 = triangle.add_vertex(6.27, 2.55, 2.5)
     #face = triangle.add_face(p1, p2, p3, obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1]))
 
-    red_material = obj.Material([1, 0, 0], [1, 0, 0], [1, 0, 0])
-    green_material = obj.Material([0, 1, 0], [0, 1, 0], [0, 1, 0])
-    blue_material = obj.Material([0, 0, 1], [0, 0, 1], [0, 0, 1])
-    yellow_material = obj.Material([1, 1, 0], [1, 1, 0], [1, 1, 0])
-    material = obj.Material([0.3, 0.6, 0.9], [0.3, 0.6, 0.9], [0.3, 0.6, 0.9])
-    white_material = obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1])
+    red_material = obj.Material([1, 0, 0], [1, 0, 0], [1, 0, 0], 1)
+    green_material = obj.Material([0, 1, 0], [0, 1, 0], [0, 1, 0], 1)
+    blue_material = obj.Material([0, 0, 1], [0, 0, 1], [0, 0, 1], 1)
+    yellow_material = obj.Material([1, 1, 0], [1, 1, 0], [1, 1, 0], 1)
+    material = obj.Material([0.3, 0.6, 0.9], [0.3, 0.6, 0.9], [0.3, 0.6, 0.9], 1)
+    white_material = obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1], 1)
 
     cube = obj.Obj()
     v1 = cube.add_vertex(0.0, 0.0, 0.0)
@@ -376,7 +375,7 @@ def main():
     spot_light = SpotLightSource([0.8, 0.8, 0.8], 1, [0.5, 4.0, 0.5], [5.0, 5.0, 5.0], 10.0)
     infinity_light = InfinityLightSource([0.9, 0.9, 0.9], 1, [10.0, 10.0, 10.0])
 
-    scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
+    scenario = Scenario([cube], [], po, look_at, a_vup)
 
     # print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
