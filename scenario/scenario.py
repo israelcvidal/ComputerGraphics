@@ -334,10 +334,10 @@ class InfinityLightSource(LightSource):
         
 
 def main():
-    po = [0.5, 0.5, 5.0, 1.0]
+    po = [10, 10, -5, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
-    d = 1.0
+    d = 3.
     window_height = 0.5
     window_width = 0.5
     pixels_height = 200
