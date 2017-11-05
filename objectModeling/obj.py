@@ -55,9 +55,9 @@ class Obj(object):
         """
         Creates a new face(adding do self.faces dictionary) composed by edges p1, e2 and p3
 
-        :param p1_id: vertex 1 id
-        :param p2_id: vertex 2 id
-        :param p3_id: vertex 3 id
+        :param v1: vertex 1
+        :param v2: vertex 2
+        :param v3: vertex 3
         :param material: material of the face
         :return: face's id
         """
@@ -70,8 +70,3 @@ class Obj(object):
         for face in self.faces:
             face.calculate_normal()
 
-    def get_face(self, face_id):
-        return self.faces[face_id]
-
-    def get_vertex(self, vertex_id):
-        return self.vertices[vertex_id]

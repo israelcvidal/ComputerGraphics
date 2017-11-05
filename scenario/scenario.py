@@ -238,11 +238,11 @@ class LightSource(object):
         diffuse_term = n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        specular_term = np.dot(v, r) ** face.material.attenuation
+        specular_term = np.dot(v, r)
         specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
-                 ((k_e_rgb * self.intensity) * specular_term))
+                 ((k_e_rgb * self.intensity) * (specular_term ** face.material.attenuation)))
 
         return i_obj
 
