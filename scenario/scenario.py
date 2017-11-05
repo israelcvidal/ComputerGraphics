@@ -338,8 +338,8 @@ def main():
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
     d = 3.
-    window_height = 0.5
-    window_width = 0.5
+    window_height = 1
+    window_width = 1
     pixels_height = 200
     pixels_width = 200
 
@@ -373,10 +373,10 @@ def main():
     cube.add_face(v3, v8, v4, material)
 
     punctual_light = PunctualLightSource([0.7, 0.7, 0.7], [3.5, 3.5, 3.5])
-    spot_light = SpotLightSource([0.8, 0.8, 0.8], [0.5, 4.0, 0.5], [5.0, 5.0, 5.0], 10.0)
+    spot_light = SpotLightSource(intensity=[0.8, 0.8, 0.8], position=[0.5, 4.0, 0.5],
+                                 direction=[5.0, 5.0, 5.0], theta=10.0)
     infinity_light = InfinityLightSource([0.9, 0.9, 0.9], [10.0, 10.0, 10.0])
-
-    scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
+    scenario = Scenario([cube], [punctual_light, spot_light, infinity_light], po, look_at, a_vup)
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
 
