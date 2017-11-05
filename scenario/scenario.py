@@ -158,8 +158,14 @@ class Scenario(object):
             if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
                 intersected_faces.append((t, face))
         if intersected_faces:
-            intersected_face = min(intersected_faces, key=lambda f: f[0])
-            return intersected_face[0] * pij, intersected_face[1]
+            intersected_faces = sorted(intersected_faces, key=lambda f: f[0])
+            intersected_face = None
+            for face in intersected_faces:
+                if face[0] >= 1:
+                    intersected_face = face
+                    break
+            if intersected_face:
+                return intersected_face[0] * pij, intersected_face[1]
         return None, None
 
     def transform_to_camera(self):
@@ -238,7 +244,7 @@ class LightSource(object):
         diffuse_term = n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        specular_term = np.dot(v, r) ** face.attenuation
+        specular_term = np.dot(v, r) ** face.material.attenuation
         specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
@@ -288,7 +294,7 @@ class SpotLightSource(LightSource):
         diffuse_term = spot_intensity * n.dot(l)
         diffuse_term = max(0, diffuse_term)
 
-        specular_term = spot_intensity * (np.dot(v, r) ** face.attenuation)
+        specular_term = spot_intensity * (np.dot(v, r) ** face.material.attenuation)
         specular_term = max(0, specular_term)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
@@ -330,9 +336,9 @@ def main():
     po = [0.5, 0.5, 5.0, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
-    d = 2.0
-    window_height = 200
-    window_width = 200
+    d = 0.7
+    window_height = 1
+    window_width = 1
     pixels_height = 200
     pixels_width = 200
 
@@ -371,11 +377,11 @@ def main():
     cube.add_face(v3, v7, v8, material)
     cube.add_face(v3, v8, v4, material)
 
-    punctual_light = PunctualLightSource([0.7, 0.7, 0.7], 1, [3.5, 3.5, 3.5])
-    spot_light = SpotLightSource([0.8, 0.8, 0.8], 1, [0.5, 4.0, 0.5], [5.0, 5.0, 5.0], 10.0)
-    infinity_light = InfinityLightSource([0.9, 0.9, 0.9], 1, [10.0, 10.0, 10.0])
+    punctual_light = PunctualLightSource([0.7, 0.7, 0.7], [3.5, 3.5, 3.5])
+    spot_light = SpotLightSource([0.8, 0.8, 0.8], [0.5, 4.0, 0.5], [5.0, 5.0, 5.0], 10.0)
+    infinity_light = InfinityLightSource([0.9, 0.9, 0.9], [10.0, 10.0, 10.0])
 
-    scenario = Scenario([cube], [], po, look_at, a_vup)
+    scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
 
     # print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
