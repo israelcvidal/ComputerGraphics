@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import sys
+sys.path.append("..")
 from transformations import world_camera_transformations as wct
 from objectModeling import obj
 import matplotlib.pyplot as plt
@@ -336,17 +337,11 @@ def main():
     po = [0.5, 0.5, 5.0, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
-    d = 0.7
-    window_height = 1
-    window_width = 1
+    d = 1.0
+    window_height = 0.5
+    window_width = 0.5
     pixels_height = 200
     pixels_width = 200
-
-    #triangle = obj.Obj()
-    #p1 = triangle.add_vertex(6.79, 1.12, 3.0)
-    #p2 = triangle.add_vertex(6.52, 1.0, 2.0)
-    #p3 = triangle.add_vertex(6.27, 2.55, 2.5)
-    #face = triangle.add_face(p1, p2, p3, obj.Material([1, 1, 1], [1, 1, 1], [1, 1, 1]))
 
     red_material = obj.Material([1, 0, 0], [1, 0, 0], [1, 0, 0], 1)
     green_material = obj.Material([0, 1, 0], [0, 1, 0], [0, 1, 0], 1)
@@ -383,7 +378,6 @@ def main():
 
     scenario = Scenario([cube], [punctual_light], po, look_at, a_vup)
 
-    # print(scenario.ray_casting(window_width, window_height, d, pixels_width, pixels_height))
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
 
 
