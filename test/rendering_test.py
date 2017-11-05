@@ -42,13 +42,12 @@ def main():
     cube.add_face(v3, v7, v8, material)
     cube.add_face(v3, v8, v4, material)
 
-
     punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[3.5, 3.5, 3.5])
     spot_light = SpotLightSource(intensity=[0.8, 0.8, 0.8], position=[3.5, 3.5, 3.5],
                                  direction=[0.5, 0.5, 0.5], theta=20.0)
     infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    scenario = Scenario(objects=[cube], light_sources=[],
+    scenario = Scenario(objects=[cube], light_sources=[punctual_light],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
                         ambient_light=[1., 1., 1.])
 

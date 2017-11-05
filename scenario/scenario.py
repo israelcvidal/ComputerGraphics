@@ -86,7 +86,7 @@ class Scenario(object):
         objects_not_cut = []
 
         for object_ in self.objects:
-            vertices = np.array(list(object_.vertices.values()))
+            vertices = np.array(object_.vertices)
             min_x = min(vertices[:, 0])
             max_x = max(vertices[:, 0])
             min_y = min(vertices[:, 1])
@@ -118,7 +118,7 @@ class Scenario(object):
         pij_u = pij / np.linalg.norm(pij)
         pij_u = np.append(pij_u, [1])
         for object_ in objects:
-            for face in object_.faces.values():
+            for face in object_.faces:
                 if pij_u.dot(face.normal) < 0:
                     faces_not_cut.append(face)
 
@@ -133,7 +133,7 @@ class Scenario(object):
         """
         intersected_faces = []
         for face in faces:
-            p1, p2, p3 = face.vertices.values()
+            p1, p2, p3 = face.vertices
             normal = face.normal[:3]
             p1 = p1[:3]
             p2 = p2[:3]
@@ -170,10 +170,7 @@ class Scenario(object):
     def transform_to_camera(self):
         wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.a_vup)
         for object_ in self.objects:
-            camera_vertices = [wc_matrix.dot(vertex) for vertex in object_.vertices.values()]
-            for key in object_.vertices.keys():
-                object_.vertices[key] = camera_vertices[key]
-
+            object_.vertices = [wc_matrix.dot(vertex) for vertex in object_.vertices]
             object_.update_faces()
 
         for light_source in self.light_sources:
@@ -184,10 +181,7 @@ class Scenario(object):
         cw_matrix = wct.get_camera_world_matrix(self.po, self.look_at, self.a_vup)
 
         for object_ in self.objects:
-            world_vertices = [cw_matrix.dot(vertex) for vertex in object_.vertices.values()]
-            for key in object_.vertices.keys():
-                object_.vertices[key] = world_vertices[key]
-
+            object_.vertices = [cw_matrix.dot(vertex) for vertex in object_.vertices]
             object_.update_faces()
 
         for light_source in self.light_sources:
