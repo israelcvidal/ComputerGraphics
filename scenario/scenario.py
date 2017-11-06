@@ -55,12 +55,10 @@ class Scenario(object):
                 faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
                 p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
                 # if intercept any point
-                if type(p_int).__module__ == np.__name__:
-                    # TODO
-                    # CHECK IF IT MAKES SENSE
-                    p[i][j] = self.determine_color(p_int, intersected_face)
-                else:
+                if p_int is None:
                     p[i][j] = self.background_color
+                else:
+                    p[i][j] = self.determine_color(p_int, intersected_face)
         return p
 
     def determine_color(self, p_int, intersected_face):
