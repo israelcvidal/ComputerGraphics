@@ -4,7 +4,7 @@ from scenario.scenario import *
 
 
 def main():
-    po = [10, 10, -5, 1.0]
+    po = [10, 10, 5, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
     a_vup = [0.5, 3.0, 3.0, 1.0]
     d = 3.
@@ -47,8 +47,8 @@ def main():
                                  direction=[0.5, 0.5, 0.5], theta=20.0)
     infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    scenario = Scenario(objects=[cube], light_sources=[punctual_light],
-                        po=po, look_at=look_at, a_vup=a_vup, background_color=[1., 1., 1.],
+    scenario = Scenario(objects=[cube], light_sources=[],
+                        po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
                         ambient_light=[1., 1., 1.])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)

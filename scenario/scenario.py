@@ -72,7 +72,8 @@ class Scenario(object):
         for light_source in self.light_sources:
             pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
 
-        return pij_rgb
+        return np.array([min(pij_rgb[i], 1.) for i in range(len(pij_rgb))])
+        # return pij_rgb
 
     def objects_culling(self, pij):
         """
