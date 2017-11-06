@@ -59,7 +59,8 @@ class Scenario(object):
                     p[i][j] = self.background_color
                 else:
                     p[i][j] = self.determine_color(p_int, intersected_face)
-        return p
+        max_rgb = np.amax(np.amax(p, axis=0), axis=0)
+        return p/max_rgb
 
     def determine_color(self, p_int, intersected_face):
         """
@@ -72,8 +73,8 @@ class Scenario(object):
         for light_source in self.light_sources:
             pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
 
-        return np.array([min(pij_rgb[i], 1.) for i in range(len(pij_rgb))])
-        # return pij_rgb
+        # return np.array([min(pij_rgb[i], 1.) for i in range(len(pij_rgb))])
+        return pij_rgb
 
     def objects_culling(self, pij):
         """
@@ -94,8 +95,7 @@ class Scenario(object):
             max_z = max(vertices[:, 2])
 
             center = np.array([(max_x - min_x), (max_y - min_y), (max_z - min_z)])
-            radius = math.pow((max_x - center[0]), 2) + math.pow((max_y - center[1]), 2) + math.pow((max_z - center[2]),
-                                                                                                    2)
+            radius = math.pow((max_x - center[0]), 2) + math.pow((max_y - center[1]), 2) + math.pow((max_z - center[2]), 2)
             radius = math.sqrt(radius)
             a = pij.dot(pij)
             b = -2 * (pij.dot(center))
