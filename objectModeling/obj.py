@@ -24,7 +24,7 @@ class Face(object):
 
     def calculate_normal(self):
         p1, p2, p3 = self.vertices
-        normal = np.cross((p3.coordinates - p1.coordinates)[:3], (p2.coordinates - p1.coordinates)[:3])
+        normal = np.cross((p2.coordinates - p1.coordinates)[:3], (p3.coordinates - p1.coordinates)[:3])
         normal = normal / np.linalg.norm(normal)
         normal = np.append(normal, [0])
         self.normal = normal
