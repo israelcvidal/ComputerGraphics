@@ -60,7 +60,7 @@ class Scenario(object):
                 else:
                     p[i][j] = self.determine_color(p_int, intersected_face)
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
-        return p/max_rgb
+        return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
     def determine_color(self, p_int, intersected_face):
         """
@@ -153,7 +153,9 @@ class Scenario(object):
             n2 = np.cross(w2, w3)
             n3 = np.cross(w3, w1)
 
-            if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+            # if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+            normal = face.normal[:3]
+            if np.dot(normal, n1) >= 0. and np.dot(normal, n2) >= 0. and np.dot(normal, n3) >= 0:
                 intersected_faces.append((t, face))
         if intersected_faces:
             intersected_faces = sorted(intersected_faces, key=lambda f: f[0])
