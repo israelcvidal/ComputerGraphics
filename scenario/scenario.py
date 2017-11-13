@@ -236,10 +236,8 @@ class LightSource(object):
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
 
-        diffuse_term = n.dot(l)
-        diffuse_term = max(0, diffuse_term)
-        # if not diffuse_term > 0:
-        #     return 0
+        if not diffuse_term > 0:
+            return 0
 
         specular_term = np.dot(v, r)
         specular_term = max(0, specular_term ** face.material.attenuation)
