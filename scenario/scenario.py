@@ -236,6 +236,7 @@ class LightSource(object):
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
 
+        diffuse_term = n.dot(l)
         if not diffuse_term > 0:
             return 0
 
