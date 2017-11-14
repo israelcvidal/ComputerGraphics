@@ -37,9 +37,8 @@ def ap2(matricula):
 
 
     # CHECK IF NORMAL IS IN CAMERA OR WORLD!!!!!
-    normal = [-4, 4, -3]
-    normal = normal/np.linalg.norm(normal)
-    face = obj.Face(0, None, material, normal)
+    se = [-4, 4, -3]
+    face = obj.Face(0, None, material, None)
 
     # Getting i,j,k vectors
     ic, jc, kc = wct.get_ijk(eye, look_at, view_up)
@@ -57,12 +56,6 @@ def ap2(matricula):
     x_ij = (-w / 2) + (delta_w/ 2) + j * delta_w
 
     p_ij = np.array([x_ij, y_i, -d])
-
-    if t_int:
-        p = t_int * p_ij
-    else:
-        t_int = np.dot(face.normal, face.vertices[0][:3]) / np.dot(face.normal, p_ij[:3])
-        p = t_int * p_ij
 
     # IF NOT IN CAMERA POSITION:
     for light_source in light_sources:
@@ -83,9 +76,19 @@ def ap2(matricula):
     print("\npij:")
     print(p_ij)
 
+    p_ij = p_ij / np.linalg.norm(p_ij)
+
+    if t_int:
+        p = t_int * p_ij
+    else:
+        t_int = np.dot(face.normal, face.vertices[0][:3]) / np.dot(face.normal, p_ij[:3])
+        p = t_int * p_ij
+
     print("pint:")
     print(p)
 
+    normal = (se - p) / np.linalg.norm(se - p)
+    face.normal = normal
     print("face.normal:")
     print(face.normal)
 
@@ -99,7 +102,8 @@ def ap2(matricula):
         print(r)
 
     pij_rgb = face.material.k_a_rgb * rgb_ambient
-
+    print("ambient: ")
+    print(pij_rgb)
     for light_source in light_sources:
         pij_rgb += light_source.get_total_intensity(face, p)
 
@@ -108,7 +112,7 @@ def ap2(matricula):
 
 
 if __name__ == '__main__':
-    matricula = "366389"
+    matricula = "751004"
 
     ap2(matricula)
 

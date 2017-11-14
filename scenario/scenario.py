@@ -297,10 +297,10 @@ class SpotLightSource(LightSource):
             return 0
 
         specular_term = spot_intensity * np.dot(v, r)
-        specular_term = max(0, specular_term)
+        specular_term = max(0, specular_term ** face.material.attenuation)
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
-                 ((k_e_rgb * self.intensity) * (specular_term ** face.material.attenuation)))
+                 ((k_e_rgb * self.intensity) * specular_term))
 
         return i_obj
 
