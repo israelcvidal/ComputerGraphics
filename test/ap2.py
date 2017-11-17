@@ -2,6 +2,7 @@ from transformations import world_camera_transformations as wct
 from scenario import scenario as sc
 import numpy as np
 from objectModeling import obj
+import math
 
 
 def ap2(matricula):
@@ -13,87 +14,101 @@ def ap2(matricula):
     E = float(E)
     F = float(F)
 
-    eye = np.array([0, 0, 0])
-    rgb_ambient = np.array([0.5, 0.5, 0.5])
-    punctual_intensity = np.array([0.9, 0.8, 1.0])
-    punctual_position = np.array([-4., 6., -3.])
-    punctual_light = sc.PunctualLightSource(punctual_intensity, punctual_position)
-    light_sources = [punctual_light]
+    L = A+B+C+D+E+F
+    P1 = np.array([A+10, B+5, 0, 0])
+    P2 = P1 + np.array([L, 0, 0, 0])
+    P3 = P1 + np.array([L/2, (L*math.sqrt(3))/2, 0, 0])
+    P4 = P1 + np.array([L/2, (L*math.sqrt(3))/6, (L*math.sqrt(6))/6, 0])
 
-    look_at = np.array([D, E, F])
-    view_up = np.array(([A, B, C]))
-    m = 2.0
-    material = obj.Material([0.8, 0.3, 0.2], [0.8, 0.3, 0.2], [0.8, 0.3, 0.2], m)
+    v1 = sc.obj.Vertex(0, P1)
+    v2 = sc.obj.Vertex(1, P2)
+    v3 = sc.obj.Vertex(2, P3)
+    v4 = sc.obj.Vertex(3, P4)
 
-    d = 3.
-    w = 8.
-    h = 8.
-    w_pixels = 800
-    h_pixels = 800
+    # k = np.array([1, 1, 1])
+    # material = obj.Material(k, k, k, 2)
+    # red_material = obj.Material([1, 0, 0], [1, 0, 0], [1, 0, 0], 1)
+    # green_material = obj.Material([0, 1, 0], [0, 1, 0], [0, 1, 0], 1)
+    # blue_material = obj.Material([0, 0, 1], [0, 0, 1], [0, 0, 1], 1)
 
-    t_int = 12
-    i = 1
-    j = 3
+    print("A: ", A)
+    print("B: ", B)
+    print("C: ", C)
+    print("D: ", D)
+    print("E: ", E)
+    print("F: ", F)
 
+    print("\nL: ", L)
+    print("P1: ", P1)
+    print("P2: ", P2)
+    print("P3: ", P3)
+    print("P4: ", P4)
 
-    # CHECK IF NORMAL IS IN CAMERA OR WORLD!!!!!
-    se = [-4, 4, -3]
-    face = obj.Face(0, None, material, None)
+    #QUESTAO 1:
+    Po = np.array([A-5, B+L, (L*math.sqrt(6))/6, 1])
+    Look_At = P4-np.array([0, 0, (L*math.sqrt(6))/6, 0])
+    # View_Up = Look_At + np.array([0, 1, 0, 0])
+    View_Up = P4
 
-    # Getting i,j,k vectors
-    ic, jc, kc = wct.get_ijk(eye, look_at, view_up)
+    print("\nPo: ", Po)
+    print("Look_At: ", Look_At)
+    print("View_Up: ", View_Up)
 
-    # Getting w<->c matrices
-    M_w_c = wct.get_world_camera_matrix(eye, look_at, view_up)
-    M_c_w = wct.get_camera_world_matrix(eye, look_at, view_up)
+    # ITEM A)
+    ic, jc, kc = wct.get_ijk(Po, Look_At, View_Up)
+    print("\nITEM A)")
+    print("ic: ", ic)
+    print("jc: ", jc)
+    print("kc: ", kc)
 
-    # RAY CASTING
+    # ITEM B)
+    Mwc = wct.get_world_camera_matrix(Po[:3], Look_At[:3], View_Up[:3])
+    Mcw = wct.get_camera_world_matrix(Po[:3], Look_At[:3], View_Up[:3])
 
-    delta_w = w / w_pixels
-    delta_h = h / h_pixels
+    print("\nITEM B)")
+    print("W->C:\n", Mwc)
+    print("C->W:\n", Mcw)
 
-    y_i = (h / 2) - (delta_h / 2) - i * delta_h
-    x_ij = (-w / 2) + (delta_w/ 2) + j * delta_w
+    # ITEM C)
+    print("ITEM C)")
+    print("P1_c: ", Mwc.dot(P1))
+    print("P2_c: ",  Mwc.dot(P2))
+    print("P3_c: ",  Mwc.dot(P3))
+    print("P4_c: ",  Mwc.dot(P4))
 
-    p_ij = np.array([x_ij, y_i, -d])
+    # QUESTAO 2:
 
-    # IF NOT IN CAMERA POSITION:
-    for light_source in light_sources:
-        light_source.position = M_w_c.dot(light_source.position)
+    tetaedro = obj.Obj()
+    k_a = np.array([A/50, B/50, C/50])
+    k_d_s = 3*k_a
+    m = 1
+    ambient_light = np.array([0.4, 0.4, 0.4])
 
-    print("ic:")
-    print(ic)
-    print("jc:")
-    print(jc)
-    print("kc:")
-    print(kc)
+    pl_intensity = np.array([0.7, 0.7, 0.7])
+    pl_position = np.array([A+10, B+L, 2*L])
 
-    print("\nMatrix camera->world:")
-    print(M_c_w)
-    print("Matrix world->camera:")
-    print(M_w_c)
+    puntual_light = sc.PunctualLightSource(pl_intensity, pl_position)
+    material = obj.Material(k_a, k_d_s, k_d_s, m)
 
-    print("\npij:")
-    print(p_ij)
+    tetaedro.vertices = [v1, v2, v3, v4]
+    tetaedro.add_face(v1, v2, v4, material)
+    tetaedro.add_face(v1, v4, v3, material)
+    tetaedro.add_face(v2, v3, v4, material)
+    tetaedro.add_face(v1, v3, v2, material)
 
-    p_ij = p_ij / np.linalg.norm(p_ij)
+    P = P4-np.array([0, 0, (L*math.sqrt(6))/12, 0])
+    Pc = Mwc.dot(P)
+    print("\nP: ", P)
+    print("Pc: ", Pc)
 
-    if t_int:
-        p = t_int * p_ij
-    else:
-        t_int = np.dot(face.normal, face.vertices[0][:3]) / np.dot(face.normal, p_ij[:3])
-        p = t_int * p_ij
+    scenario = sc.Scenario([tetaedro], [puntual_light], Po, Look_At, View_Up,
+                           background_color=[0, 0, 0], ambient_light=[1, 1, 1])
+    scenario.render(1, 1, 0.3, 200, 200)
+    # scenario.ray_casting_prova(Pc[:3])
 
-    print("pint:")
-    print(p)
-
-    normal = (se - p) / np.linalg.norm(se - p)
-    face.normal = normal
-    print("face.normal:")
-    print(face.normal)
-
-    for light_source in light_sources:
-        _, l, v, r = light_source.get_vectors(face, p)
+    print("normal: ", tetaedro.faces[1].normal)
+    for light_source in [puntual_light]:
+        _, l, v, r = light_source.get_vectors(tetaedro.faces[1], np.array([ 10.60806564, 16.31536086, -17.22368926]))
         print("l:")
         print(l)
         print("v:")
@@ -101,18 +116,18 @@ def ap2(matricula):
         print("r:")
         print(r)
 
-    pij_rgb = face.material.k_a_rgb * rgb_ambient
+    pij_rgb = tetaedro.faces[1].material.k_a_rgb * ambient_light
     print("ambient: ")
     print(pij_rgb)
-    for light_source in light_sources:
-        pij_rgb += light_source.get_total_intensity(face, p)
+    for light_source in [puntual_light]:
+        pij_rgb += light_source.get_total_intensity(tetaedro.faces[1], Pc[:3])
 
     print("\npij_rgb:")
     print(pij_rgb)
 
 
 if __name__ == '__main__':
-    matricula = "751004"
+    matricula = "370019"
 
     ap2(matricula)
 

@@ -24,6 +24,37 @@ class Scenario(object):
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
 
+    def ray_casting_prova(self, pij):
+        """
+
+        :param window_width: width of window to open on the plane
+        :param window_height: height of window to open on the plane
+        :param window_distance: distance of the plane where the window will be opened at
+        :param pixels_width: number of pixels we will have on width direction
+        :param pixels_height: number of pixels we will have on height direction
+        :return: matrix rgb to be rendered
+        """
+
+        # transforming all objects to camera
+        self.transform_to_camera()
+
+        # getting face  intercepted and point of intersection of ray pij
+        objects_not_cut = self.objects_culling(pij)
+        print("objects_not_cut: ", objects_not_cut)
+
+        faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
+        print("faces_to_check_intersection: ")
+        for face in faces_to_check_intersection:
+            print([x.vertex_id+1 for x in face.vertices])
+
+        p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+        # if intercept any point
+        if p_int is not None:
+            print(self.determine_color(p_int, intersected_face))
+
+        # max_rgb = np.amax(np.amax(p, axis=0), axis=0)
+        # return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
+
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height):
         """
 
@@ -123,6 +154,53 @@ class Scenario(object):
 
         return faces_not_cut
 
+    # def get_intersected_face(self, faces, pij):
+    #     """
+    #     Returns witch faces have intersection with the ray and their point of intersection(t).
+    #     :param faces: list of faces
+    #     :param pij: point where the ray starts
+    #     :return: point of intersection with the closest face and the face intersected
+    #     """
+    #     intersected_faces = []
+    #     for face in faces:
+    #         p1, p2, p3 = face.vertices
+    #         normal = face.normal[:3]
+    #         p1 = p1.coordinates[:3]
+    #         p2 = p2.coordinates[:3]
+    #         p3 = p3.coordinates[:3]
+    #
+    #         t = np.dot(normal, p1[:3]) / np.dot(normal, pij[:3])
+    #
+    #         # ray and plane intersection point
+    #         p = t * pij
+    #
+    #         # now we want to check if this point is inside the face
+    #         w1 = np.array(p1) - np.array(p)
+    #         w2 = np.array(p2) - np.array(p)
+    #         w3 = np.array(p3) - np.array(p)
+    #
+    #         # checking normal of each new triangle
+    #         n1 = np.cross(w1, w2)
+    #         n2 = np.cross(w2, w3)
+    #         n3 = np.cross(w3, w1)
+    #
+    #         # if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+    #         normal = face.normal[:3]
+    #         if np.dot(normal, n1) >= 0. and np.dot(normal, n2) >= 0. and np.dot(normal, n3) >= 0:
+    #             intersected_faces.append((t, face))
+    #
+    #     if intersected_faces:
+    #         intersected_faces = sorted(intersected_faces, key=lambda f: f[0])
+    #         intersected_face = None
+    #         for face in intersected_faces:
+    #             print(face[0])
+    #             if face[0] >= 1:
+    #                 intersected_face = face
+    #                 break
+    #         if intersected_face:
+    #             return intersected_face[0] * pij, intersected_face[1]
+    #     return None, None
+
     def get_intersected_face(self, faces, pij):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
@@ -156,16 +234,15 @@ class Scenario(object):
             # if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
             normal = face.normal[:3]
             if np.dot(normal, n1) >= 0. and np.dot(normal, n2) >= 0. and np.dot(normal, n3) >= 0:
+                print("intersected face: ", face.face_id, [x.vertex_id+1 for x in face.vertices])
+                print("with t = ", t)
                 intersected_faces.append((t, face))
+
         if intersected_faces:
-            intersected_faces = sorted(intersected_faces, key=lambda f: f[0])
-            intersected_face = None
-            for face in intersected_faces:
-                if face[0] >= 1:
-                    intersected_face = face
-                    break
-            if intersected_face:
-                return intersected_face[0] * pij, intersected_face[1]
+            intersected_face = sorted(intersected_faces, key=lambda f: f[0])[0]
+            print("t: ", intersected_face[0])
+            print("pint: ", intersected_face[0]*pij)
+            return intersected_face[0]*pij, intersected_face[1]
         return None, None
 
     def transform_to_camera(self):
