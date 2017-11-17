@@ -211,6 +211,7 @@ def get_shear_matrix(axis, direction, alpha):
 
 
 def compose_matrices(args):
+    # [Tn...T3, T2, T1]
     result_matrix = args.pop(0)
 
     for matrix in args:

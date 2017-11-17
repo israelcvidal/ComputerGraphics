@@ -70,3 +70,7 @@ class Obj(object):
         for face in self.faces:
             face.calculate_normal()
 
+    def apply_transformation(self, M):
+        for vertex in self.vertices:
+            vertex.coordinates = M.dot(vertex.coordinates)
+
