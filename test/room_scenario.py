@@ -53,35 +53,61 @@ def main():
     cube.add_face(v2, v6, v7, orange_material)
     cube.add_face(v2, v7, v3, orange_material)
 
+    objects = []
+
     S = mt.get_scale_matrix([4., 0.1, 3., 1])
     floor = copy.deepcopy(cube)
     floor.apply_transformation(S)
+    objects.append(floor)
 
     T = mt.get_translation_matrix([0, 3., 0])
     roof = copy.deepcopy(floor)
     roof.apply_transformation(T)
+    objects.append(roof)
+
+    S = mt.get_scale_matrix([4., 0.3, 0.5, 1])
+    T = mt.get_translation_matrix([0, 2.7, 0])
+    M = mt.compose_matrices([T, S])
+    roof_detail = copy.deepcopy(cube)
+    roof_detail.apply_transformation(M)
+    objects.append(roof_detail)
+
+    S = mt.get_scale_matrix([0.5, 0.3, 3., 1])
+    T = mt.get_translation_matrix([0, 2.7, 0])
+    M = mt.compose_matrices([T, S])
+    roof_detail2 = copy.deepcopy(cube)
+    roof_detail2.apply_transformation(M)
+    objects.append(roof_detail2)
+
+    T = mt.get_translation_matrix([3.5, 0, 0])
+    roof_detail3 = copy.deepcopy(roof_detail2)
+    roof_detail3.apply_transformation(T)
+    objects.append(roof_detail3)
 
     S = mt.get_scale_matrix([4., 3., 0.1, 1])
     wall = copy.deepcopy(cube)
     wall.apply_transformation(S)
+    objects.append(wall)
 
     S = mt.get_scale_matrix([0.1, 3., 3., 1])
     wall2 = copy.deepcopy(cube)
     wall2.apply_transformation(S)
+    objects.append(wall2)
 
-    T = mt.get_translation_matrix([4., 0, 0])
+    T = mt.get_translation_matrix([3.9, 0, 0])
     wall3 = copy.deepcopy(wall2)
     wall3.apply_transformation(T)
+    objects.append(wall3)
 
     punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[2, 2.9, 1.5])
     # spot_light = SpotLightSource(intensity=[0.8, 0.8, 0.8], position=[3.5, 3.5, 3.5],
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 2, 10, 1.0]
-    look_at = [1.5, 1.5, 1.5, 1.0]
-    a_vup = [1.5, 5, 1.5, 1.0]
-    scenario = Scenario(objects=[floor,wall,roof,wall2,wall3], light_sources=[punctual_light],
+    po = [2, 2, 10, 1.0]
+    look_at = [2, 2, 2, 1.0]
+    a_vup = [2, 5.5, 2, 1.0]
+    scenario = Scenario(objects=objects, light_sources=[punctual_light],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
                         ambient_light=[1., 1., 1.])
 
