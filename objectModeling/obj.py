@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Material(object):
-    def __init__(self, k_a_rgb, k_d_rgb, k_e_rgb, attenuation):
+    def __init__(self, k_a_rgb=[1.,1.,1.], k_d_rgb=[1.,1.,1.], k_e_rgb=[1.,1.,1.], attenuation=1.):
         self.k_a_rgb = k_a_rgb
         self.k_d_rgb = k_d_rgb
         self.k_e_rgb = k_e_rgb
@@ -46,7 +46,7 @@ class Obj(object):
         :param z: coordinate z
         :return: vertex's id
         """
-        vertex_id = len(self.vertices)
+        vertex_id = len(self.vertices)+1
         vertex = Vertex(vertex_id, [x, y, z, 1])
         self.vertices.append(vertex)
         return vertex
@@ -74,3 +74,53 @@ class Obj(object):
         for vertex in self.vertices:
             vertex.coordinates = M.dot(vertex.coordinates)
 
+    def import_obj(self, name):
+        mtl = 'Default'
+        default_mtl = Material()
+        materials = {mtl: default_mtl}
+        vertices = {}
+
+        with open(name) as file:
+            for line in file:
+                if line.startswith('#'): continue
+                values = line.split()
+                if not values: continue
+
+                if values[0] == 'mtllib':
+                    materials = self.read_mtllib(values[1])
+
+                if values[0] == 'usemtl':
+                    mtl = values[1]
+
+                if values[0] == 'v':
+                    vertex = self.add_vertex(float(values[1]), float(values[2]), float(values[3]))
+                    vertices[str(vertex.vertex_id)] = vertex
+                if values[0] == 'f':
+                    self.add_face(vertices[values[1]], vertices[values[2]], vertices[values[3]], materials[mtl])
+
+        return self
+
+    def read_mtllib(self, name):
+        mtl = None
+        materials = {}
+
+        with open(name) as mtllib:
+            for line in mtllib:
+                if line.startswith('#'): continue
+                values = line.split()
+                if not values: continue
+
+                if values[0] == 'newmtl':
+                    mtl = values[1]
+                    materials[mtl] = Material()
+
+                if values[0] == 'Ka':
+                    materials[mtl].k_a_rgb = [float(values[1]), float(values[2]), float(values[3])]
+                if values[0] == 'Kd':
+                    materials[mtl].k_d_rgb = [float(values[1]), float(values[2]), float(values[3])]
+                if values[0] == 'Ks':
+                    materials[mtl].k_e_rgb = [float(values[1]), float(values[2]), float(values[3])]
+                if values[0] == 'Ns':
+                    materials[mtl].attenuation = values[1]
+
+        return materials

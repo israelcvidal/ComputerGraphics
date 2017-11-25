@@ -3,8 +3,9 @@ import math
 from transformations import world_camera_transformations as wct
 from objectModeling import obj
 import matplotlib.pyplot as plt
-import pymp
+#import pymp
 import sys
+import time
 
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
@@ -35,32 +36,39 @@ class Scenario(object):
         :param pixels_height: number of pixels we will have on height direction
         :return: matrix rgb to be rendered
         """
+        print("Starting ray_casting()...")
+        start = time.time()
+
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
         # p = matrix of points corresponding to each pixel
-        # p = np.ones((pixels_width, pixels_height, 3))
-        p = pymp.shared.array((pixels_width, pixels_height, 3))
+        p = np.ones((pixels_width, pixels_height, 3))
+        # p = pymp.shared.array((pixels_width, pixels_height, 3))
         # transforming all objects to camera
         self.transform_to_camera()
 
-        pymp.config.nested = True
-        with pymp.Parallel(4) as p1:
-            # with pymp.Parallel(2) as p2:
-            for i in p1.range(pixels_height):
-                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                for j in range(pixels_width):
-                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window_distance])
-                    # getting face  intercepted and point of intersection of ray pij
-                    objects_not_cut = self.objects_culling(pij)
-                    faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
-                    p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
-                    # if intercept any point
-                    if p_int is None:
-                        p[i][j] = self.background_color
-                    else:
-                        p[i][j] = self.determine_color(p_int, intersected_face)
+        #pymp.config.nested = True
+        #with pymp.Parallel(4) as p1:
+        # with pymp.Parallel(2) as p2:
+        for i in range(pixels_height):
+            y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+            for j in range(pixels_width):
+                x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                pij = np.array([x_i, y_i, -window_distance])
+                # getting face  intercepted and point of intersection of ray pij
+                objects_not_cut = self.objects_culling(pij)
+                faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
+                p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+                # if intercept any point
+                if p_int is None:
+                    p[i][j] = self.background_color
+                else:
+                    p[i][j] = self.determine_color(p_int, intersected_face)
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
+
+        end = time.time()
+        print("Done in: ", end - start)
+
         return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
     def determine_color(self, p_int, intersected_face):

@@ -3,44 +3,11 @@ sys.path.append("..")
 from scenario.scenario import *
 from transformations import model_transformations as mt
 import copy
+import time
 
 
 def create_objects():
-    orange_material = obj.Material([1.0, 140.0 / 255.0, 0.0], [1.0, 140.0 / 255.0, 0.0], [1.0, 140.0 / 255.0, 0.0], 1)
-
-    cube = obj.Obj()
-    v0 = cube.add_vertex(0.0, 0.0, 0.0)
-    v1 = cube.add_vertex(1.0, 0.0, 0.0)
-    v2 = cube.add_vertex(0.0, 1.0, 0.0)
-    v3 = cube.add_vertex(1.0, 1.0, 0.0)
-    v4 = cube.add_vertex(0.0, 0.0, 1.0)
-    v5 = cube.add_vertex(1.0, 0.0, 1.0)
-    v6 = cube.add_vertex(0.0, 1.0, 1.0)
-    v7 = cube.add_vertex(1.0, 1.0, 1.0)
-
-    # trás
-    cube.add_face(v0, v3, v1, orange_material)
-    cube.add_face(v0, v2, v3, orange_material)
-
-    # direita
-    cube.add_face(v1, v7, v5, orange_material)
-    cube.add_face(v1, v3, v7, orange_material)
-
-    # frente
-    cube.add_face(v4, v5, v7, orange_material)
-    cube.add_face(v4, v7, v6, orange_material)
-
-    # esquerda
-    cube.add_face(v0, v4, v6, orange_material)
-    cube.add_face(v0, v6, v2, orange_material)
-
-    # baixo
-    cube.add_face(v0, v1, v5, orange_material)
-    cube.add_face(v0, v5, v4, orange_material)
-
-    # cima
-    cube.add_face(v2, v6, v7, orange_material)
-    cube.add_face(v2, v7, v3, orange_material)
+    cube = obj.Obj().import_obj('../objects/cube.obj')
 
     objects = []
 
@@ -73,6 +40,11 @@ def create_objects():
     roof_detail3.apply_transformation(T)
     objects.append(roof_detail3)
 
+    #T = mt.get_translation_matrix([0, 0, 3.2])
+    #roof_detail4 = copy.deepcopy(roof_detail)
+    #roof_detail4.apply_transformation(T)
+    #objects.append(roof_detail4)
+
     S = mt.get_scale_matrix([3., 3., 0.1, 1])
     wall = copy.deepcopy(cube)
     wall.apply_transformation(S)
@@ -87,6 +59,11 @@ def create_objects():
     wall3 = copy.deepcopy(wall2)
     wall3.apply_transformation(T)
     objects.append(wall3)
+
+    #T = mt.get_translation_matrix([0, 0, 4.])
+    #wall4 = copy.deepcopy(wall)
+    #wall4.apply_transformation(T)
+    #objects.append(wall4)
 
     S = mt.get_scale_matrix([0.75, 2.7, 0.2, 1])
     T = mt.get_translation_matrix([0, 0, 0.1])
@@ -115,7 +92,7 @@ def create_objects():
     return objects
 
 def main():
-    d = 3
+    d = 0.5
     window_height = 2.
     window_width = 2.
     pixels_height = 200
@@ -128,7 +105,7 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 10, 1.0]
+    po = [1.5, 1.5, 3., 1.0]
     look_at = [1.5, 1.5, 1.5, 1.0]
     a_vup = [1.5, 5.5, 1.5, 1.0]
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
@@ -136,7 +113,6 @@ def main():
                         ambient_light=[1., 1., 1.])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
-
 
 if __name__ == '__main__':
     main()
