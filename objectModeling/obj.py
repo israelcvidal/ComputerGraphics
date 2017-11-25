@@ -12,7 +12,7 @@ class Material(object):
 class Vertex(object):
     def __init__(self, vertex_id, coordinates):
         self.vertex_id = vertex_id
-        self.coordinates = coordinates
+        self.coordinates = np.array(coordinates)
 
 
 class Face(object):
@@ -21,6 +21,14 @@ class Face(object):
         self.face_id = face_id
         self.material = material
         self.normal = normal
+        # calculating dots to optimize raycasting
+        self.v0 = self.vertices[2].coordinates[:3] - self.vertices[0].coordinates[:3]
+        self.v1 = self.vertices[1].coordinates[:3] - self.vertices[0].coordinates[:3]
+
+        self.dot00 = np.dot(self.v0, self.v0)
+        self.dot01 = np.dot(self.v0, self.v1)
+        self.dot11 = np.dot(self.v1, self.v1)
+        self.invDenom = 1 / (self.dot00 * self.dot11 - self.dot01 * self.dot01)
 
     def calculate_normal(self):
         p1, p2, p3 = self.vertices
@@ -28,6 +36,16 @@ class Face(object):
         normal = normal / np.linalg.norm(normal)
         normal = np.append(normal, [0])
         self.normal = normal
+
+    def is_in_triangle(self, p):
+        v2 = p - self.vertices[0].coordinates[:3]
+        dot02 = np.dot(self.v0, v2)
+        dot12 = np.dot(self.v1, v2)
+
+        u = (self.dot11 * dot02 - self.dot01 * dot12) * self.invDenom
+        v = (self.dot00 * dot12 - self.dot01 * dot02) * self.invDenom
+
+        return u >= 0 and v >= 0 and u+v < 1
 
 
 class Obj(object):

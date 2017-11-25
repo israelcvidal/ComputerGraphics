@@ -3,7 +3,7 @@ sys.path.append("..")
 from scenario.scenario import *
 from transformations import model_transformations as mt
 import copy
-import time
+from objectModeling import obj
 
 
 def create_objects():
@@ -105,7 +105,7 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 3., 1.0]
+    po = [1.5, 1.5, 7., 1.0]
     look_at = [1.5, 1.5, 1.5, 1.0]
     a_vup = [1.5, 5.5, 1.5, 1.0]
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
