@@ -37,6 +37,7 @@ class Scenario(object):
 
         # transforming all objects to camera
         self.transform_to_camera()
+        print("p_light position CAMERA: ", self.light_sources[0].position)
 
         # getting face  intercepted and point of intersection of ray pij
         objects_not_cut = self.objects_culling(pij)
@@ -48,6 +49,7 @@ class Scenario(object):
             print([x.vertex_id+1 for x in face.vertices])
 
         p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
+        print("p_int: ", p_int)
         # if intercept any point
         if p_int is not None:
             print(self.determine_color(p_int, intersected_face))
@@ -231,8 +233,11 @@ class Scenario(object):
             n2 = np.cross(w2, w3)
             n3 = np.cross(w3, w1)
 
-            # if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+            if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
+                print("intersected face: ", face.face_id, [x.vertex_id + 1 for x in face.vertices])
+                print("with t = ", t)
             normal = face.normal[:3]
+
             if np.dot(normal, n1) >= 0. and np.dot(normal, n2) >= 0. and np.dot(normal, n3) >= 0:
                 print("intersected face: ", face.face_id, [x.vertex_id+1 for x in face.vertices])
                 print("with t = ", t)

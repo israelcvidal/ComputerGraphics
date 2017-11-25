@@ -1,3 +1,5 @@
+import sys
+sys.path.append("..")
 from transformations import world_camera_transformations as wct
 from scenario import scenario as sc
 import numpy as np
@@ -6,6 +8,8 @@ import math
 
 
 def ap2(matricula):
+    np.set_printoptions(suppress=True)
+
     F, E, D, C, B, A = matricula
     A = float(A)
     B = float(B)
@@ -15,10 +19,10 @@ def ap2(matricula):
     F = float(F)
 
     L = A+B+C+D+E+F
-    P1 = np.array([A+10, B+5, 0, 0])
-    P2 = P1 + np.array([L, 0, 0, 0])
-    P3 = P1 + np.array([L/2, (L*math.sqrt(3))/2, 0, 0])
-    P4 = P1 + np.array([L/2, (L*math.sqrt(3))/6, (L*math.sqrt(6))/6, 0])
+    P1 = np.array([A+10, B+5, 0, 1])
+    P2 = P1 + np.array([L, 0, 0, 1])
+    P3 = P1 + np.array([L/2, (L*math.sqrt(3))/2, 0, 1])
+    P4 = P1 + np.array([L/2, (L*math.sqrt(3))/6, (L*math.sqrt(6))/6, 1])
 
     v1 = sc.obj.Vertex(0, P1)
     v2 = sc.obj.Vertex(1, P2)
@@ -45,10 +49,10 @@ def ap2(matricula):
     print("P4: ", P4)
 
     #QUESTAO 1:
-    Po = np.array([A-5, B+L, (L*math.sqrt(6))/6, 1])
-    Look_At = P4-np.array([0, 0, (L*math.sqrt(6))/6, 0])
+    Po = np.array([A-5, B+L, (L*math.sqrt(6))/6, 1]).astype('longdouble')
+    Look_At = P4-np.array([0, 0, (L*math.sqrt(6))/6, 0]).astype('longdouble')
     # View_Up = Look_At + np.array([0, 1, 0, 0])
-    View_Up = P4
+    View_Up = P4.astype('longdouble')
 
     print("\nPo: ", Po)
     print("Look_At: ", Look_At)
@@ -72,9 +76,10 @@ def ap2(matricula):
     # ITEM C)
     print("ITEM C)")
     print("P1_c: ", Mwc.dot(P1))
-    print("P2_c: ",  Mwc.dot(P2))
-    print("P3_c: ",  Mwc.dot(P3))
-    print("P4_c: ",  Mwc.dot(P4))
+    print("P2_c: ", Mwc.dot(P2))
+    print("P3_c: ", Mwc.dot(P3))
+    print("P4_c: ", Mwc.dot(P4))
+    print("Po_c: ", Mwc.dot(Po))
 
     # QUESTAO 2:
 
@@ -86,6 +91,7 @@ def ap2(matricula):
 
     pl_intensity = np.array([0.7, 0.7, 0.7])
     pl_position = np.array([A+10, B+L, 2*L])
+    print("p_light position WORLD: ", pl_position)
 
     puntual_light = sc.PunctualLightSource(pl_intensity, pl_position)
     material = obj.Material(k_a, k_d_s, k_d_s, m)
@@ -96,19 +102,19 @@ def ap2(matricula):
     tetaedro.add_face(v2, v3, v4, material)
     tetaedro.add_face(v1, v3, v2, material)
 
-    P = P4-np.array([0, 0, (L*math.sqrt(6))/12, 0])
+    P = P4-np.array([0, 0, (L*math.sqrt(6))/12, 1])
     Pc = Mwc.dot(P)
     print("\nP: ", P)
     print("Pc: ", Pc)
 
     scenario = sc.Scenario([tetaedro], [puntual_light], Po, Look_At, View_Up,
                            background_color=[0, 0, 0], ambient_light=[1, 1, 1])
-    scenario.render(1, 1, 0.3, 200, 200)
-    # scenario.ray_casting_prova(Pc[:3])
+    # scenario.render(1, 1, 0.3, 200, 200)
+    scenario.ray_casting_prova(Pc[:3])
 
     print("normal: ", tetaedro.faces[1].normal)
     for light_source in [puntual_light]:
-        _, l, v, r = light_source.get_vectors(tetaedro.faces[1], np.array([ 10.60806564, 16.31536086, -17.22368926]))
+        _, l, v, r = light_source.get_vectors(tetaedro.faces[1], np.array([10.60806564, 16.31536086, -17.22368926]))
         print("l:")
         print(l)
         print("v:")
@@ -127,7 +133,8 @@ def ap2(matricula):
 
 
 if __name__ == '__main__':
-    matricula = "370019"
+    matricula = "751004"
+    # matricula = "370019"
 
     ap2(matricula)
 
