@@ -108,19 +108,11 @@ def ap2(matricula):
     print("Pc: ", Pc)
 
     scenario = sc.Scenario([tetaedro], [puntual_light], Po, Look_At, View_Up,
-                           background_color=[0, 0, 0], ambient_light=[1, 1, 1])
+                           background_color=[0, 0, 0], ambient_light=ambient_light)
     # scenario.render(1, 1, 0.3, 200, 200)
     scenario.ray_casting_prova(Pc[:3])
 
-    print("\nnormal: ", tetaedro.faces[1].normal)
-    for light_source in [puntual_light]:
-        _, l, v, r = light_source.get_vectors(tetaedro.faces[1], np.array([10.60806564, 16.31536086, -17.22368926]))
-        print("l:")
-        print(l)
-        print("v:")
-        print(v)
-        print("r:")
-        print(r)
+
 
 
 if __name__ == '__main__':

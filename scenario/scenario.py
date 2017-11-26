@@ -53,6 +53,16 @@ class Scenario(object):
         if p_int is not None:
             self.determine_color(p_int, intersected_face)
 
+        print("\nnormal: ", intersected_face.normal)
+        for light_source in self.light_sources:
+            _, l, v, r = light_source.get_vectors(intersected_face, p_int)
+            print("l:")
+            print(l)
+            print("v:")
+            print(v)
+            print("r:")
+            print(r)
+
         # max_rgb = np.amax(np.amax(p, axis=0), axis=0)
         # return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
