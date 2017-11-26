@@ -23,7 +23,7 @@ class Scenario(object):
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
 
-    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=False):
+    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True):
         """
 
         :param window_width: width of window to open on the plane
