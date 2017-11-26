@@ -20,9 +20,9 @@ def ap2(matricula):
 
     L = A+B+C+D+E+F
     P1 = np.array([A+10, B+5, 0, 1])
-    P2 = P1 + np.array([L, 0, 0, 1])
-    P3 = P1 + np.array([L/2, (L*math.sqrt(3))/2, 0, 1])
-    P4 = P1 + np.array([L/2, (L*math.sqrt(3))/6, (L*math.sqrt(6))/6, 1])
+    P2 = P1 + np.array([L, 0, 0, 0])
+    P3 = P1 + np.array([L/2, (L*math.sqrt(3))/2, 0, 0])
+    P4 = P1 + np.array([L/2, (L*math.sqrt(3))/6, (L*math.sqrt(6))/6, 0])
 
     v1 = sc.obj.Vertex(0, P1)
     v2 = sc.obj.Vertex(1, P2)
@@ -49,10 +49,10 @@ def ap2(matricula):
     print("P4: ", P4)
 
     #QUESTAO 1:
-    Po = np.array([A-5, B+L, (L*math.sqrt(6))/6, 1]).astype('longdouble')
-    Look_At = P4-np.array([0, 0, (L*math.sqrt(6))/6, 0]).astype('longdouble')
+    Po = np.array([A-5, B+L, (L*math.sqrt(6))/6, 1])
+    Look_At = P4-np.array([0, 0, (L*math.sqrt(6))/6, 0])
     # View_Up = Look_At + np.array([0, 1, 0, 0])
-    View_Up = P4.astype('longdouble')
+    View_Up = P4
 
     print("\nPo: ", Po)
     print("Look_At: ", Look_At)
@@ -102,7 +102,7 @@ def ap2(matricula):
     tetaedro.add_face(v2, v3, v4, material)
     tetaedro.add_face(v1, v3, v2, material)
 
-    P = P4-np.array([0, 0, (L*math.sqrt(6))/12, 1])
+    P = P4-np.array([0, 0, (L*math.sqrt(6))/12, 0])
     Pc = Mwc.dot(P)
     print("\nP: ", P)
     print("Pc: ", Pc)
@@ -112,7 +112,7 @@ def ap2(matricula):
     # scenario.render(1, 1, 0.3, 200, 200)
     scenario.ray_casting_prova(Pc[:3])
 
-    print("normal: ", tetaedro.faces[1].normal)
+    print("\nnormal: ", tetaedro.faces[1].normal)
     for light_source in [puntual_light]:
         _, l, v, r = light_source.get_vectors(tetaedro.faces[1], np.array([10.60806564, 16.31536086, -17.22368926]))
         print("l:")
@@ -121,15 +121,6 @@ def ap2(matricula):
         print(v)
         print("r:")
         print(r)
-
-    pij_rgb = tetaedro.faces[1].material.k_a_rgb * ambient_light
-    print("ambient: ")
-    print(pij_rgb)
-    for light_source in [puntual_light]:
-        pij_rgb += light_source.get_total_intensity(tetaedro.faces[1], Pc[:3])
-
-    print("\npij_rgb:")
-    print(pij_rgb)
 
 
 if __name__ == '__main__':
