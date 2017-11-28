@@ -58,6 +58,7 @@ class Scenario(object):
                         p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
                         # if intercept any point
                         if p_int is None:
+                            # print(i, j)
                             p[i][j] = self.background_color
                         else:
                             p[i][j] = self.determine_color(p_int, intersected_face)
@@ -120,9 +121,16 @@ class Scenario(object):
             min_z = min(vertices[:, 2])
             max_z = max(vertices[:, 2])
 
-            center = np.array([(max_x - min_x), (max_y - min_y), (max_z - min_z)])
-            radius = math.pow((max_x - center[0]), 2) + math.pow((max_y - center[1]), 2) + math.pow((max_z - center[2]), 2)
-            radius = math.sqrt(radius)
+            center = np.array([(max_x + min_x)/2, (max_y + min_y)/2, (max_z + min_z)/2])
+            dx = abs(max_x) + abs(min_x)
+            dy = abs(max_y) + abs(min_y)
+            dz = abs(max_z) + abs(min_z)
+
+
+            # radius = math.pow((max_x - center[0]), 2) + math.pow((max_y - center[1]), 2) + math.pow((max_z - center[2]), 2)
+            # radius = math.sqrt(radius)
+            radius = max(dx, dy, dz)/2
+
             a = pij.dot(pij)
             b = -2 * (pij.dot(center))
             c = center.dot(center) - math.pow(radius, 2)

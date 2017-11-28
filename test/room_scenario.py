@@ -11,11 +11,13 @@ def create_objects():
 
     objects = []
 
+    # CHÃO
     s = mt.get_scale_matrix([3., 0.1, 4., 1])
     floor = copy.deepcopy(cube)
     floor.apply_transformation(s)
     objects.append(floor)
 
+    # TETO
     t = mt.get_translation_matrix([0, 3., 0])
     roof = copy.deepcopy(floor)
     roof.apply_transformation(t)
@@ -45,11 +47,8 @@ def create_objects():
     roof_detail4.apply_transformation(t)
     objects.append(roof_detail4)
 
-    s = mt.get_scale_matrix([3., 3., 0.1, 1])
-    wall = copy.deepcopy(cube)
-    wall.apply_transformation(s)
-    objects.append(wall)
 
+    # PAREDE ESQUERDA
     s = mt.get_scale_matrix([0.1, 3., 0.75, 1])
     wall2 = copy.deepcopy(cube)
     wall2.apply_transformation(s)
@@ -79,6 +78,7 @@ def create_objects():
     wall2_4.apply_transformation(m)
     objects.append(wall2_4)
 
+    # PERSIANAS
     s = mt.get_scale_matrix([0.03, 0.01, 1.1, 1])
     sh = mt.get_shear_matrix('x', 'y', -45)
     t = mt.get_translation_matrix([0.15, 1.1, 0.7])
@@ -101,6 +101,8 @@ def create_objects():
         objects.append(blind2)
         objects.append(blind3)
 
+
+    # PAREDE DIREITA
     s = mt.get_scale_matrix([0.1, 3., 4., 1])
     t = mt.get_translation_matrix([2.9, 0, 0])
     m = mt.compose_matrices([t, s])
@@ -108,11 +110,19 @@ def create_objects():
     wall3.apply_transformation(m)
     objects.append(wall3)
 
+    # PAREDE TRÁS
+    s = mt.get_scale_matrix([3., 3., 0.1, 1])
+    wall = copy.deepcopy(cube)
+    wall.apply_transformation(s)
+    objects.append(wall)
+
+    # PAREDE FRENTE
     t = mt.get_translation_matrix([0, 0, 4.])
     wall4 = copy.deepcopy(wall)
     wall4.apply_transformation(t)
     objects.append(wall4)
 
+    # PAREDE TRÁS: DETALHES
     s = mt.get_scale_matrix([0.5, 2.7, 0.3, 1])
     t = mt.get_translation_matrix([0, 0, 0.1])
     m = mt.compose_matrices([t, s])
@@ -154,6 +164,7 @@ def create_objects():
     shelf3.apply_transformation(t)
     objects.append(shelf3)
 
+    # TV
     s = mt.get_scale_matrix([1., 0.6, 0.05, 1])
     t = mt.get_translation_matrix([1., 0.8, 0.1])
     m = mt.compose_matrices([t, s])
@@ -185,6 +196,7 @@ def create_objects():
     tv_detail4.apply_transformation(t)
     objects.append(tv_detail4)
 
+    # TV RACK
     s = mt.get_scale_matrix([1.2, 0.06, 0.4, 1])
     t = mt.get_translation_matrix([0.9, 0.2, 0.1])
     m = mt.compose_matrices([t, s])
@@ -209,6 +221,7 @@ def create_objects():
     tv_rack4.apply_transformation(t)
     objects.append(tv_rack4)
 
+    # SPEAKERS
     s = mt.get_scale_matrix([0.2, 0.9, 0.3, 1])
     t = mt.get_translation_matrix([0.6, 0, 0.1])
     m = mt.compose_matrices([t, s])
@@ -232,9 +245,9 @@ def create_objects():
 
 
 def main():
-    d = 2
-    window_height = 2.
-    window_width = 2.
+    d = 0.5
+    window_height = 1
+    window_width = 1
     pixels_height = 200
     pixels_width = 200
 
@@ -245,11 +258,12 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 7., 1.0]
-    look_at = [1.5, 1.5, 1.5, 1.0]
-    a_vup = [1.5, 5.5, 0, 1.0]
+    po = [1.5, 1.5, 3.5, 1.0]
+    look_at = np.array([1.5, 1.5, 1.5, 1.0])
+    a_vup = look_at + [0, 1, 0., 0]
+
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
-                        po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
+                        po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[1., 1., 1.])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height)
