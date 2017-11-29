@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.spatial.distance import euclidean
+#from scipy.spatial.distance import euclidean
 
 class Material(object):
     def __init__(self, k_a_rgb=[1.,1.,1.], k_d_rgb=[1.,1.,1.], k_e_rgb=[1.,1.,1.], attenuation=1.):
@@ -120,9 +120,8 @@ class Obj(object):
         for vertex in self.vertices:
             vertex.coordinates = M.dot(vertex.coordinates)
 
-    def import_obj(self, name):
+    def import_obj(self, name, default_mtl=Material()):
         mtl = 'Default'
-        default_mtl = Material()
         materials = {mtl: default_mtl}
         vertices = {}
 
