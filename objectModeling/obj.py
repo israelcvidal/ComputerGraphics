@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy.spatial.distance import euclidean
 
 class Material(object):
     def __init__(self, k_a_rgb=[1.,1.,1.], k_d_rgb=[1.,1.,1.], k_e_rgb=[1.,1.,1.], attenuation=1.):
@@ -27,6 +27,8 @@ class Face(object):
         self.dot01 = None
         self.dot11 = None
         self.det = None
+        self.center = None
+        self.max_distance = None
 
     def calculate_normal(self):
         p1, p2, p3 = self.vertices
@@ -35,7 +37,7 @@ class Face(object):
         normal = np.append(normal, [0])
         self.normal = normal
 
-        # calculating dots to optimize raycasting
+        # calculating dots to optimize barycentric coordinates
         self.v0 = self.vertices[1].coordinates[:3] - self.vertices[0].coordinates[:3]
         self.v1 = self.vertices[2].coordinates[:3] - self.vertices[0].coordinates[:3]
 
@@ -44,23 +46,35 @@ class Face(object):
         self.dot11 = np.dot(self.v1, self.v1)
         self.det = self.dot00 * self.dot11 - self.dot01 * self.dot01
 
+        # calculating center of face and max distance for optimization
+        # self.center = (p1.coordinates + p2.coordinates + p3.coordinates)/3
+        # self.max_distance = max(euclidean(self.center, p1.coordinates),
+        #                         euclidean(self.center, p2.coordinates),
+        #                         euclidean(self.center, p3.coordinates))
+
     def is_in_triangle(self, p):
         v2 = p - self.vertices[0].coordinates[:3]
         dot02 = np.dot(self.v0, v2)
         dot12 = np.dot(self.v1, v2)
 
-        u = (self.dot11 * dot02 - self.dot01 * dot12) / self.det
-        v = (self.dot00 * dot12 - self.dot01 * dot02) / self.det
+        # u = (self.dot11 * dot02 - self.dot01 * dot12) / self.det
+        # v = (self.dot00 * dot12 - self.dot01 * dot02) / self.det
+        #
+        # w = 1 - u - v
+        #
+        # return 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1
 
-        w = 1 - u - v
+        u = (self.dot11 * dot02 - self.dot01 * dot12)
+        v = (self.dot00 * dot12 - self.dot01 * dot02)
 
-        return 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1
+        return u+v < self.det and u >= 0 and v >= 0
 
 
 class Obj(object):
     def __init__(self):
         self.vertices = []
         self.faces = []
+        self.faces_to_camera = []
 
     def add_vertex(self, x, y, z):
         """
@@ -96,6 +110,11 @@ class Obj(object):
     def calculate_normals(self):
         for face in self.faces:
             face.calculate_normal()
+            # if normal.dot(p1) > 0, face's normal is in the same direction as camera's normal,
+            # so we will not compute it
+
+            if face.normal[:3].dot(self.vertices[0].coordinates) < 0:
+                self.faces_to_camera.append(face)
 
     def apply_transformation(self, M):
         for vertex in self.vertices:
@@ -151,3 +170,4 @@ class Obj(object):
                     materials[mtl].attenuation = values[1]
 
         return materials
+

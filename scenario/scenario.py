@@ -4,6 +4,7 @@ from transformations import world_camera_transformations as wct
 import matplotlib.pyplot as plt
 import time
 
+
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
                  a_vup=None, background_color=[0.0, 0.0, 0.0], ambient_light=[1.0, 1.0, 1.0]):
@@ -25,7 +26,6 @@ class Scenario(object):
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True):
         """
-
         :param window_width: width of window to open on the plane
         :param window_height: height of window to open on the plane
         :param window_distance: distance of the plane where the window will be opened at
@@ -58,7 +58,6 @@ class Scenario(object):
                         p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
                         # if intercept any point
                         if p_int is None:
-                            # print(i, j)
                             p[i][j] = self.background_color
                         else:
                             p[i][j] = self.determine_color(p_int, intersected_face)
@@ -73,8 +72,6 @@ class Scenario(object):
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    # faces_to_check_intersection = self.back_face_culling(objects_not_cut, pij)
-                    # p_int, intersected_face = self.get_intersected_face(faces_to_check_intersection, pij)
                     p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
 
                     # if intercept any point
@@ -82,6 +79,162 @@ class Scenario(object):
                         p[i][j] = self.background_color
                     else:
                         p[i][j] = self.determine_color(p_int, intersected_face)
+        max_rgb = np.amax(np.amax(p, axis=0), axis=0)
+
+        end = time.time()
+        print("Done in: ", end - start)
+
+        return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
+
+    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True):
+        """
+
+        :param window_width: width of window to open on the plane
+        :param window_height: height of window to open on the plane
+        :param window_distance: distance of the plane where the window will be opened at
+        :param pixels_width: number of pixels we will have on width direction
+        :param pixels_height: number of pixels we will have on height direction
+        :return: matrix rgb to be rendered
+        """
+        print("Starting ray_casting_mean()...")
+        start = time.time()
+
+        delta_x = window_width / pixels_width
+        delta_y = window_height / pixels_height
+        # transforming all objects to camera
+        self.transform_to_camera()
+
+        if parallel:
+            import pymp
+            # p = matrix of points corresponding to each pixel
+            p = pymp.shared.array((pixels_width, pixels_height, 3))
+            pymp.config.nested = True
+
+            # Borders
+            with pymp.Parallel(4) as p1:
+                # First and last column:
+                for i in p1.range(pixels_height):
+                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                    for j in [0, pixels_width-1]:
+                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                        pij = np.array([x_i, y_i, -window_distance])
+                        # getting face  intercepted and point of intersection of ray pij
+                        objects_not_cut = self.objects_culling(pij)
+                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        # if intercept any point
+                        if p_int is None:
+                            p[i][j] = self.background_color
+                        else:
+                            p[i][j] = self.determine_color(p_int, intersected_face)
+
+                # First and last line:
+                for i in [0, pixels_height-1]:
+                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                    for j in p1.range(pixels_width):
+                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                        pij = np.array([x_i, y_i, -window_distance])
+                        # getting face  intercepted and point of intersection of ray pij
+                        objects_not_cut = self.objects_culling(pij)
+                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        # if intercept any point
+                        if p_int is None:
+                            # print(i, j)
+                            p[i][j] = self.background_color
+                        else:
+                            p[i][j] = self.determine_color(p_int, intersected_face)
+
+                # Alternating pixels
+                for i in p1.range(pixels_height):
+                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                    for j in range(1 + (i % 2), pixels_width, 2):
+                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                        pij = np.array([x_i, y_i, -window_distance])
+                        # getting face  intercepted and point of intersection of ray pij
+                        objects_not_cut = self.objects_culling(pij)
+                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        # if intercept any point
+                        if p_int is None:
+                            # print(i, j)
+                            p[i][j] = self.background_color
+                        else:
+                            p[i][j] = self.determine_color(p_int, intersected_face)
+
+            for i in range(0, pixels_height-1):
+                for j in range(2 - (i % 2), pixels_width-1, 2):
+                    mean1 = (p[i-1][j] + p[i+1][j])/2
+                    mean2 = (p[i][j-1] + p[i][j+1])/2
+                    diff1 = np.linalg.norm(p[i + 1][j] - p[i - 1][j])
+                    diff2 = np.linalg.norm(p[i][j + 1] - p[i][j - 1])
+                    if diff1 + diff2 != 0:
+                        mean = (mean1*diff2 + mean2*diff1)/(diff1+diff2)
+                    else:
+                        mean = mean1
+
+                    p[i][j] = mean
+        else:
+            # p = matrix of points corresponding to each pixel
+            p = np.ones((pixels_width, pixels_height, 3))
+
+            # Borders
+            # First and last column:
+            for i in range(pixels_height):
+                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                for j in [0, pixels_width - 1]:
+                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                    pij = np.array([x_i, y_i, -window_distance])
+                    # getting face  intercepted and point of intersection of ray pij
+                    objects_not_cut = self.objects_culling(pij)
+                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    # if intercept any point
+                    if p_int is None:
+                        # print(i, j)
+                        p[i][j] = self.background_color
+                    else:
+                        p[i][j] = self.determine_color(p_int, intersected_face)
+
+                # First and last line:
+                for i in [0, pixels_height - 1]:
+                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                    for j in range(pixels_width):
+                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                        pij = np.array([x_i, y_i, -window_distance])
+                        # getting face  intercepted and point of intersection of ray pij
+                        objects_not_cut = self.objects_culling(pij)
+                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        # if intercept any point
+                        if p_int is None:
+                            # print(i, j)
+                            p[i][j] = self.background_color
+                        else:
+                            p[i][j] = self.determine_color(p_int, intersected_face)
+
+            # Alternating pixels
+            for i in range(pixels_height):
+                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                for j in range(1 + i % 2, pixels_width, 2):
+                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                    pij = np.array([x_i, y_i, -window_distance])
+                    # getting face  intercepted and point of intersection of ray pij
+                    objects_not_cut = self.objects_culling(pij)
+                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    # if intercept any point
+                    if p_int is None:
+                        p[i][j] = self.background_color
+                    else:
+                        p[i][j] = self.determine_color(p_int, intersected_face)
+
+            for i in range(0, pixels_height-1):
+                for j in range(2 - (i % 2), pixels_width-1, 2):
+                    mean1 = (p[i-1][j] + p[i+1][j])/2
+                    mean2 = (p[i][j-1] + p[i][j+1])/2
+                    diff1 = np.linalg.norm(p[i + 1][j] - p[i - 1][j])
+                    diff2 = np.linalg.norm(p[i][j + 1] - p[i][j - 1])
+                    if diff1 + diff2 != 0:
+                        mean = (mean1*diff2 + mean2*diff1)/(diff1+diff2)
+                    else:
+                        mean = mean1
+                    p[i][j] = mean
+
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
 
         end = time.time()
@@ -100,7 +253,6 @@ class Scenario(object):
         for light_source in self.light_sources:
             pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
 
-        # return np.array([min(pij_rgb[i], 1.) for i in range(len(pij_rgb))])
         return pij_rgb
 
     def objects_culling(self, pij):
@@ -126,9 +278,6 @@ class Scenario(object):
             dy = abs(max_y) + abs(min_y)
             dz = abs(max_z) + abs(min_z)
 
-
-            # radius = math.pow((max_x - center[0]), 2) + math.pow((max_y - center[1]), 2) + math.pow((max_z - center[2]), 2)
-            # radius = math.sqrt(radius)
             radius = max(dx, dy, dz)/2
 
             a = pij.dot(pij)
@@ -160,15 +309,13 @@ class Scenario(object):
     def get_intersected_face(self, objects, pij):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
-        :param faces: list of faces
         :param pij: point where the ray starts
         :return: point of intersection with the closest face and the face intersected
         """
         intersected_face = (float('inf'), None)
 
-        for object in objects:
-            faces = object.faces
-            for face in faces:
+        for object_ in objects:
+            for face in object_.faces_to_camera:
                 p1 = face.vertices[0].coordinates[:3]
                 normal = face.normal[:3]
 
@@ -185,60 +332,19 @@ class Scenario(object):
                 # ray and plane intersection point
                 p = t * pij
 
+                # if the distance of this point to the center of the triangle is
+                # greater than the max distance of a point in that triangle, than its not a valid intersection
+
+                # if euclidean(p, face.center) > face.max_distance:
+                #     continue
+
                 # now we want to check if this point is inside the face
                 if face.is_in_triangle(p):
-                    if t < intersected_face[0]:
-                        intersected_face = (t, face)
+                    intersected_face = (t, face)
 
         if intersected_face[1] is not None:
             return intersected_face[0] * pij, intersected_face[1]
         return None, None
-
-    # def get_intersected_face(self, faces, pij):
-    #     """
-    #     Returns witch faces have intersection with the ray and their point of intersection(t).
-    #     :param faces: list of faces
-    #     :param pij: point where the ray starts
-    #     :return: point of intersection with the closest face and the face intersected
-    #     """
-    #
-    #     intersected_faces = []
-    #     for face in faces:
-    #         p1, p2, p3 = face.vertices
-    #         normal = face.normal[:3]
-    #         p1 = p1.coordinates[:3]
-    #         p2 = p2.coordinates[:3]
-    #         p3 = p3.coordinates[:3]
-    #
-    #         t = np.dot(normal, p1[:3]) / np.dot(normal, pij[:3])
-    #
-    #         # ray and plane intersection point
-    #         p = t * pij
-    #
-    #         # now we want to check if this point is inside the face
-    #         w1 = np.array(p1) - np.array(p)
-    #         w2 = np.array(p2) - np.array(p)
-    #         w3 = np.array(p3) - np.array(p)
-    #
-    #         # checking normal of each new triangle
-    #         n1 = np.cross(w1, w2)
-    #         n2 = np.cross(w2, w3)
-    #         n3 = np.cross(w3, w1)
-    #
-    #         # if n1.dot(n2) >= 0 and n2.dot(n3) >= 0:
-    #         normal = face.normal[:3]
-    #         if np.dot(normal, n1) >= 0. and np.dot(normal, n2) >= 0. and np.dot(normal, n3) >= 0:
-    #             intersected_faces.append((t, face))
-    #     if intersected_faces:
-    #         intersected_faces = sorted(intersected_faces, key=lambda f: f[0])
-    #         intersected_face = None
-    #         for face in intersected_faces:
-    #             if face[0] >= 1:
-    #                 intersected_face = face
-    #                 break
-    #         if intersected_face:
-    #             return intersected_face[0] * pij, intersected_face[1]
-    #     return None, None
 
     def transform_to_camera(self):
         wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.a_vup)
@@ -262,8 +368,11 @@ class Scenario(object):
         for light_source in self.light_sources:
             light_source.position = cw_matrix.dot(light_source.position)
 
-    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height):
-        scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height)
+    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height, ray_mean=True):
+        if ray_mean:
+            scenario = self.ray_casting_mean(window_width, window_height, window_distance, pixels_width, pixels_height)
+        else:
+            scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height)
         plt.imshow(scenario)
         plt.show()
 
@@ -317,11 +426,6 @@ class LightSource(object):
 
         i_obj = (((k_d_rgb * self.intensity) * diffuse_term) +
                  ((k_e_rgb * self.intensity) * specular_term))
-
-        # print("specular:")
-        # print((k_e_rgb * self.intensity) * specular_term)
-        # print("diffuse:")
-        # print((k_d_rgb * self.intensity) * diffuse_term)
 
         return i_obj
 

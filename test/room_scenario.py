@@ -241,6 +241,12 @@ def create_objects():
     device.apply_transformation(m)
     objects.append(device)
 
+    # print total number of faces
+    # size = 0
+    # for obje in objects:
+    #     for face in obje.faces:
+    #         size += 1
+    # print(size)
     return objects
 
 
@@ -248,8 +254,8 @@ def main():
     d = 0.5
     window_height = 1
     window_width = 1
-    pixels_height = 200
-    pixels_width = 200
+    pixels_height = 201
+    pixels_width = 201
 
     objects = create_objects()
 
@@ -266,7 +272,7 @@ def main():
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[1., 1., 1.])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
 
 
 if __name__ == '__main__':
