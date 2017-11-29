@@ -23,6 +23,7 @@ def create_objects():
     roof.apply_transformation(t)
     objects.append(roof)
 
+    # TETO: DETALHES
     s = mt.get_scale_matrix([3., 0.3, 0.8, 1])
     t = mt.get_translation_matrix([0.1, 2.7, 0.1])
     m = mt.compose_matrices([t, s])
@@ -46,7 +47,6 @@ def create_objects():
     roof_detail4 = copy.deepcopy(roof_detail)
     roof_detail4.apply_transformation(t)
     objects.append(roof_detail4)
-
 
     # PAREDE ESQUERDA
     s = mt.get_scale_matrix([0.1, 3., 0.75, 1])
@@ -79,15 +79,15 @@ def create_objects():
     objects.append(wall2_4)
 
     # PERSIANAS
-    s = mt.get_scale_matrix([0.03, 0.01, 1.1, 1])
+    s = mt.get_scale_matrix([0.03, 0.01, 1.05, 1])
     sh = mt.get_shear_matrix('x', 'y', -45)
-    t = mt.get_translation_matrix([0.15, 1.1, 0.7])
+    t = mt.get_translation_matrix([0.15, 1.1, 0.77])
     m = mt.compose_matrices([t, sh, s])
     blind = copy.deepcopy(cube)
     blind.apply_transformation(m)
     objects.append(blind)
 
-    t = mt.get_translation_matrix([0, 0, 1.5])
+    t = mt.get_translation_matrix([0, 0, 1.38])
     blind1 = copy.deepcopy(blind)
     blind1.apply_transformation(t)
     objects.append(blind1)
@@ -147,6 +147,7 @@ def create_objects():
     wall_detail4.apply_transformation(t)
     objects.append(wall_detail4)
 
+    # PRATELEIRAS DA PAREDE DE TRÁS
     s = mt.get_scale_matrix([1., 0.06, 0.25, 1])
     t = mt.get_translation_matrix([1., 1.9, 0.1])
     m = mt.compose_matrices([t, s])
@@ -264,8 +265,8 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 3.5, 1.0]
-    look_at = np.array([1.5, 1.5, 1.5, 1.0])
+    po = [1.5, 1.5, 2, 1.0]
+    look_at = np.array([0, 1.5, 2, 1.0])
     a_vup = look_at + [0, 1, 0., 0]
 
     scenario = Scenario(objects=objects, light_sources=[punctual_light],

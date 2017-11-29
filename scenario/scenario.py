@@ -192,21 +192,21 @@ class Scenario(object):
                     else:
                         p[i][j] = self.determine_color(p_int, intersected_face)
 
-                # First and last line:
-                for i in [0, pixels_height - 1]:
-                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                    for j in range(pixels_width):
-                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window_distance])
-                        # getting face  intercepted and point of intersection of ray pij
-                        objects_not_cut = self.objects_culling(pij)
-                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
-                        # if intercept any point
-                        if p_int is None:
-                            # print(i, j)
-                            p[i][j] = self.background_color
-                        else:
-                            p[i][j] = self.determine_color(p_int, intersected_face)
+            # First and last line:
+            for i in [0, pixels_height - 1]:
+                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
+                for j in range(pixels_width):
+                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
+                    pij = np.array([x_i, y_i, -window_distance])
+                    # getting face  intercepted and point of intersection of ray pij
+                    objects_not_cut = self.objects_culling(pij)
+                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    # if intercept any point
+                    if p_int is None:
+                        # print(i, j)
+                        p[i][j] = self.background_color
+                    else:
+                        p[i][j] = self.determine_color(p_int, intersected_face)
 
             # Alternating pixels
             for i in range(pixels_height):
