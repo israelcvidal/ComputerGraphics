@@ -34,6 +34,10 @@ def create_objects():
     wood_material_dark = obj.Material(rgb_wood_dark, rgb_wood_dark, rgb_wood_dark, 1)
     wood_material_light = obj.Material(rgb_wood_light, rgb_wood_light, rgb_wood_light, 1)
 
+    # SOFA MATERIAL
+    rgb_sofa = [93/255, 83/255, 87/255]
+    sofa_material = obj.Material(rgb_sofa, rgb_sofa, rgb_sofa, 1)
+
     # CHÃO
     s = mt.get_scale_matrix([3., 0.1, 4., 1])
     floor = copy.deepcopy(cube)
@@ -299,12 +303,13 @@ def create_objects():
     device.apply_material(black_material)
     objects.append(device)
 
-    # print total number of faces
-    size = 0
-    for obje in objects:
-        for face in obje.faces:
-            size += 1
-    print(size)
+    # # print total number of faces
+    # size = 0
+    # for obje in objects:
+    #     for face in obje.faces:
+    #         size += 1
+    # print(size)
+
     return objects
 
 
