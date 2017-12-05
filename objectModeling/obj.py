@@ -70,6 +70,7 @@ class Face(object):
         return u+v < self.det and u >= 0 and v >= 0
 
 
+
 class Obj(object):
     def __init__(self):
         self.vertices = []
@@ -169,4 +170,8 @@ class Obj(object):
                     materials[mtl].attenuation = values[1]
 
         return materials
+
+    def apply_material(self, material):
+        for face in self.faces:
+            face.material = material
 

@@ -11,16 +11,41 @@ def create_objects():
 
     objects = []
 
+    # MATERIALS
+
+    # WALLS MATERIAL
+    rgb_wall_material = [44/255, 137/255, 142/255]
+    wall_material = obj.Material(rgb_wall_material, rgb_wall_material, rgb_wall_material, 1)
+
+    # CEILING MATERIAL
+    rgb_ceiling_material = [200/255, 203/255, 208/255]
+    ceiling_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, rgb_ceiling_material, 1)
+
+    # FLOOR MATERIAL
+    floor_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, rgb_ceiling_material, 1)
+
+    #  BLACK MATERIAL
+    rgb_black = [0, 0, 0]
+    black_material = obj.Material(rgb_black, rgb_black, rgb_black, 1)
+
+    # WOOD MATERIAL
+    rgb_wood_dark = [89/255, 63/255, 44/255]
+    rgb_wood_light = [144/255, 112/255, 100/255]
+    wood_material_dark = obj.Material(rgb_wood_dark, rgb_wood_dark, rgb_wood_dark, 1)
+    wood_material_light = obj.Material(rgb_wood_light, rgb_wood_light, rgb_wood_light, 1)
+
     # CHÃO
     s = mt.get_scale_matrix([3., 0.1, 4., 1])
     floor = copy.deepcopy(cube)
     floor.apply_transformation(s)
+    floor.apply_material(floor_material)
     objects.append(floor)
 
     # TETO
     t = mt.get_translation_matrix([0, 3., 0])
     roof = copy.deepcopy(floor)
     roof.apply_transformation(t)
+    roof.apply_material(ceiling_material)
     objects.append(roof)
 
     # TETO: DETALHES
@@ -29,6 +54,7 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     roof_detail = copy.deepcopy(cube)
     roof_detail.apply_transformation(m)
+    roof_detail.apply_material(ceiling_material)
     objects.append(roof_detail)
 
     s = mt.get_scale_matrix([0.5, 0.3, 4., 1])
@@ -36,22 +62,26 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     roof_detail2 = copy.deepcopy(cube)
     roof_detail2.apply_transformation(m)
+    roof_detail2.apply_material(ceiling_material)
     objects.append(roof_detail2)
 
     t = mt.get_translation_matrix([2.4, 0, 0])
     roof_detail3 = copy.deepcopy(roof_detail2)
     roof_detail3.apply_transformation(t)
+    roof_detail3.apply_material(ceiling_material)
     objects.append(roof_detail3)
 
     t = mt.get_translation_matrix([0, 0, 3.2])
     roof_detail4 = copy.deepcopy(roof_detail)
     roof_detail4.apply_transformation(t)
+    roof_detail4.apply_material(ceiling_material)
     objects.append(roof_detail4)
 
     # PAREDE ESQUERDA
     s = mt.get_scale_matrix([0.1, 3., 0.75, 1])
     wall2 = copy.deepcopy(cube)
     wall2.apply_transformation(s)
+    wall2.apply_material(wall_material)
     objects.append(wall2)
 
     s = mt.get_scale_matrix([0.1, 3., 0.5, 1])
@@ -59,16 +89,19 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     wall2_1 = copy.deepcopy(cube)
     wall2_1.apply_transformation(m)
+    wall2_1.apply_material(wall_material)
     objects.append(wall2_1)
 
     t = mt.get_translation_matrix([0, 0, 3.25])
     wall2_2 = copy.deepcopy(wall2)
     wall2_2.apply_transformation(t)
+    wall2_2.apply_material(wall_material)
     objects.append(wall2_2)
 
     s = mt.get_scale_matrix([0.1, 1., 4., 1])
     wall2_3 = copy.deepcopy(cube)
     wall2_3.apply_transformation(s)
+    wall2_3.apply_material(wall_material)
     objects.append(wall2_3)
 
     s = mt.get_scale_matrix([0.1, 0.6, 4., 1])
@@ -76,6 +109,7 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     wall2_4 = copy.deepcopy(cube)
     wall2_4.apply_transformation(m)
+    wall2_4.apply_material(wall_material)
     objects.append(wall2_4)
 
     # PERSIANAS
@@ -108,18 +142,21 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     wall3 = copy.deepcopy(cube)
     wall3.apply_transformation(m)
+    wall3.apply_material(wall_material)
     objects.append(wall3)
 
     # PAREDE TRÁS
     s = mt.get_scale_matrix([3., 3., 0.1, 1])
     wall = copy.deepcopy(cube)
     wall.apply_transformation(s)
+    wall.apply_material(wall_material)
     objects.append(wall)
 
     # PAREDE FRENTE
     t = mt.get_translation_matrix([0, 0, 4.])
     wall4 = copy.deepcopy(wall)
     wall4.apply_transformation(t)
+    wall4.apply_material(wall_material)
     objects.append(wall4)
 
     # PAREDE TRÁS: DETALHES
@@ -128,11 +165,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     wall_detail = copy.deepcopy(cube)
     wall_detail.apply_transformation(m)
+    wall_detail.apply_material(wood_material_dark)
     objects.append(wall_detail)
 
     t = mt.get_translation_matrix([2.5, 0, 0])
     wall_detail2 = copy.deepcopy(wall_detail)
     wall_detail2.apply_transformation(t)
+    wall_detail2.apply_material(wood_material_dark)
     objects.append(wall_detail2)
 
     s = mt.get_scale_matrix([0.5, 1., 0.3, 1])
@@ -140,11 +179,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     wall_detail3 = copy.deepcopy(cube)
     wall_detail3.apply_transformation(m)
+    wall_detail3.apply_material(wood_material_dark)
     objects.append(wall_detail3)
 
     t = mt.get_translation_matrix([1.5, 0, 0])
     wall_detail4 = copy.deepcopy(wall_detail3)
     wall_detail4.apply_transformation(t)
+    wall_detail4.apply_material(wood_material_dark)
     objects.append(wall_detail4)
 
     # PRATELEIRAS DA PAREDE DE TRÁS
@@ -153,16 +194,19 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     shelf = copy.deepcopy(cube)
     shelf.apply_transformation(m)
+    shelf.apply_material(wood_material_dark)
     objects.append(shelf)
 
     t = mt.get_translation_matrix([0, 0.3, 0])
     shelf2 = copy.deepcopy(shelf)
     shelf2.apply_transformation(t)
+    shelf2.apply_material(wood_material_dark)
     objects.append(shelf2)
 
     t = mt.get_translation_matrix([0, 0.3, 0])
     shelf3 = copy.deepcopy(shelf2)
     shelf3.apply_transformation(t)
+    shelf3.apply_material(wood_material_dark)
     objects.append(shelf3)
 
     # TV
@@ -171,6 +215,7 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv = copy.deepcopy(cube)
     tv.apply_transformation(m)
+    tv.apply_material(black_material)
     objects.append(tv)
 
     s = mt.get_scale_matrix([0.06, 0.6, 0.08, 1])
@@ -178,11 +223,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv_detail = copy.deepcopy(cube)
     tv_detail.apply_transformation(m)
+    tv_detail.apply_material(black_material)
     objects.append(tv_detail)
 
     t = mt.get_translation_matrix([1.06, 0, 0])
     tv_detail2 = copy.deepcopy(tv_detail)
     tv_detail2.apply_transformation(t)
+    tv_detail2.apply_material(black_material)
     objects.append(tv_detail2)
 
     s = mt.get_scale_matrix([1.12, 0.06, 0.08, 1])
@@ -190,11 +237,14 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv_detail3 = copy.deepcopy(cube)
     tv_detail3.apply_transformation(m)
+    tv_detail3.apply_material(black_material)
     objects.append(tv_detail3)
 
     t = mt.get_translation_matrix([0, 0.66, 0])
     tv_detail4 = copy.deepcopy(tv_detail3)
     tv_detail4.apply_transformation(t)
+    tv_detail4.apply_material(black_material)
+
     objects.append(tv_detail4)
 
     # TV RACK
@@ -203,11 +253,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv_rack = copy.deepcopy(cube)
     tv_rack.apply_transformation(m)
+    tv_rack.apply_material(wood_material_light)
     objects.append(tv_rack)
 
     t = mt.get_translation_matrix([0, 0.2, 0])
     tv_rack2 = copy.deepcopy(tv_rack)
     tv_rack2.apply_transformation(t)
+    tv_rack2.apply_material(wood_material_light)
     objects.append(tv_rack2)
 
     s = mt.get_scale_matrix([0.06, 0.4, 0.35, 1])
@@ -215,11 +267,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv_rack3 = copy.deepcopy(cube)
     tv_rack3.apply_transformation(m)
+    tv_rack3.apply_material(wood_material_light)
     objects.append(tv_rack3)
 
     t = mt.get_translation_matrix([1.04, 0, 0])
     tv_rack4 = copy.deepcopy(tv_rack3)
     tv_rack4.apply_transformation(t)
+    tv_rack4.apply_material(wood_material_light)
     objects.append(tv_rack4)
 
     # SPEAKERS
@@ -228,11 +282,13 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     speaker = copy.deepcopy(cube)
     speaker.apply_transformation(m)
+    speaker.apply_material(black_material)
     objects.append(speaker)
 
     t = mt.get_translation_matrix([1.6, 0, 0])
     speaker2 = copy.deepcopy(speaker)
     speaker2.apply_transformation(t)
+    speaker2.apply_material(black_material)
     objects.append(speaker2)
 
     s = mt.get_scale_matrix([0.6, 0.2, 0.3, 1])
@@ -240,14 +296,15 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     device = copy.deepcopy(cube)
     device.apply_transformation(m)
+    device.apply_material(black_material)
     objects.append(device)
 
     # print total number of faces
-    # size = 0
-    # for obje in objects:
-    #     for face in obje.faces:
-    #         size += 1
-    # print(size)
+    size = 0
+    for obje in objects:
+        for face in obje.faces:
+            size += 1
+    print(size)
     return objects
 
 
@@ -255,8 +312,8 @@ def main():
     d = 0.5
     window_height = 1
     window_width = 1
-    pixels_height = 201
-    pixels_width = 201
+    pixels_height = 100
+    pixels_width = 100
 
     objects = create_objects()
 
@@ -265,8 +322,8 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 2, 1.0]
-    look_at = np.array([0, 1.5, 2, 1.0])
+    po = [1.5, 1.5, 3.9, 1.0]
+    look_at = np.array([1.5, 1.5, 0, 1.0])
     a_vup = look_at + [0, 1, 0., 0]
 
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
