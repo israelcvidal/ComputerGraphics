@@ -303,6 +303,113 @@ def create_objects():
     device.apply_material(black_material)
     objects.append(device)
 
+    # SOFA 1: COSTAS
+    s = mt.get_scale_matrix([0.15, 0.8, 1.5, 1])
+    t = mt.get_translation_matrix([0.15, 0.1, 1.25])
+    m = mt.compose_matrices([t, s])
+    sofa1_1 = copy.deepcopy(cube)
+    sofa1_1.apply_transformation(m)
+    sofa1_1.apply_material(sofa_material)
+    objects.append(sofa1_1)
+
+    # SOFA 2: COSTAS
+    t = mt.get_translation_matrix([2.55, 0, 0])
+    sofa2_1 = copy.deepcopy(sofa1_1)
+    sofa2_1.apply_transformation(t)
+    objects.append(sofa2_1)
+
+    # SOFA 1: BRAÇO DIREITA
+    s = mt.get_scale_matrix([0.6, 0.6, 0.15, 1])
+    t = mt.get_translation_matrix([0.3, 0.1, 1.25])
+    m = mt.compose_matrices([t, s])
+    sofa1_2 = copy.deepcopy(cube)
+    sofa1_2.apply_transformation(m)
+    sofa1_2.apply_material(sofa_material)
+    objects.append(sofa1_2)
+
+    # SOFA 2: BRAÇO DIREITA
+    t = mt.get_translation_matrix([1.8, 0, 0])
+    sofa2_2 = copy.deepcopy(sofa1_2)
+    sofa2_2.apply_transformation(t)
+    objects.append(sofa2_2)
+
+    # SOFA 1: BRAÇO ESQUERDA
+    t = mt.get_translation_matrix([0, 0, 1.35])
+    sofa1_3 = copy.deepcopy(sofa1_2)
+    sofa1_3.apply_transformation(t)
+    objects.append(sofa1_3)
+
+    # SOFA 2: BRAÇO ESQUERDA
+    t = mt.get_translation_matrix([1.8, 0, 0])
+    sofa2_3 = copy.deepcopy(sofa1_3)
+    sofa2_3.apply_transformation(t)
+    objects.append(sofa2_3)
+
+    # SOFA 1: BASE
+    s = mt.get_scale_matrix([0.6, 0.3, 1, 1])
+    t = mt.get_translation_matrix([0.3, 0.05, 1.5])
+    m = mt.compose_matrices([t, s])
+    sofa1_4 = copy.deepcopy(cube)
+    sofa1_4.apply_transformation(m)
+    sofa1_4.apply_material(sofa_material)
+    objects.append(sofa1_4)
+
+    # SOFA 2: BASE
+    t = mt.get_translation_matrix([1.8, 0, 0])
+    sofa2_4 = copy.deepcopy(sofa1_4)
+    sofa2_4.apply_transformation(t)
+    objects.append(sofa2_4)
+
+    # SOFA 1: ASSENTO 1
+    s = mt.get_scale_matrix([0.6, 0.05, 0.5, 1])
+    t = mt.get_translation_matrix([0.3, 0.35, 1.48])
+    m = mt.compose_matrices([t, s])
+    sofa1_5 = copy.deepcopy(cube)
+    sofa1_5.apply_transformation(m)
+    sofa1_5.apply_material(sofa_material)
+    objects.append(sofa1_5)
+
+    # SOFA 2: ASSENTO 1
+    t = mt.get_translation_matrix([1.8, 0, 0])
+    sofa2_5 = copy.deepcopy(sofa1_5)
+    sofa2_5.apply_transformation(t)
+    objects.append(sofa2_5)
+
+    # SOFA 1: ASSENTO 2
+    t = mt.get_translation_matrix([0, 0, 0.53])
+    sofa1_6 = copy.deepcopy(sofa1_5)
+    sofa1_6.apply_transformation(t)
+    objects.append(sofa1_6)
+
+    # SOFA 2: ASSENTO 2
+    t = mt.get_translation_matrix([1.8, 0, 0])
+    sofa2_6 = copy.deepcopy(sofa1_6)
+    sofa2_6.apply_transformation(t)
+    objects.append(sofa2_6)
+
+    # MESA DE CENTRO
+    s = mt.get_scale_matrix([0.6, 0.1, 1, 1])
+    t = mt.get_translation_matrix([1.2, 0.3, 1.5])
+    m = mt.compose_matrices([t, s])
+    table1 = copy.deepcopy(cube)
+    table1.apply_material(wood_material_light)
+    table1.apply_transformation(m)
+    objects.append(table1)
+
+    s = mt.get_scale_matrix([0.5, 0.1, 0.2, 1])
+    t = mt.get_translation_matrix([1.25, 0.1, 1.6])
+    m = mt.compose_matrices([t, s])
+    table2 = copy.deepcopy(cube)
+    table2.apply_material(wood_material_light)
+    table2.apply_transformation(m)
+    objects.append(table2)
+
+    t = mt.get_translation_matrix([0, 0, 0.6])
+    table3 = copy.deepcopy(table2)
+    table3.apply_transformation(t)
+    objects.append(table3)
+
+
     # # print total number of faces
     # size = 0
     # for obje in objects:
@@ -327,7 +434,7 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 3.9, 1.0]
+    po = [1.5, 1.5, 4, 1.0]
     look_at = np.array([1.5, 1.5, 0, 1.0])
     a_vup = look_at + [0, 1, 0., 0]
 
@@ -335,7 +442,7 @@ def main():
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[1., 1., 1.])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height, False)
 
 
 if __name__ == '__main__':
