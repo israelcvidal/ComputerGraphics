@@ -38,6 +38,11 @@ def create_objects():
     rgb_sofa = [93/255, 83/255, 87/255]
     sofa_material = obj.Material(rgb_sofa, rgb_sofa, rgb_sofa, 1)
 
+    rgb_gray_light = [144/255, 150/255, 169/255]
+    gray_material_light = obj.Material(rgb_gray_light, rgb_gray_light, rgb_gray_light, 1)
+
+    # OBJECTS
+
     # CHÃO
     s = mt.get_scale_matrix([3., 0.1, 4., 1])
     floor = copy.deepcopy(cube)
@@ -219,7 +224,7 @@ def create_objects():
     m = mt.compose_matrices([t, s])
     tv = copy.deepcopy(cube)
     tv.apply_transformation(m)
-    tv.apply_material(black_material)
+    tv.apply_material(gray_material_light)
     objects.append(tv)
 
     s = mt.get_scale_matrix([0.06, 0.6, 0.08, 1])
@@ -424,8 +429,8 @@ def main():
     d = 0.5
     window_height = 1
     window_width = 1
-    pixels_height = 100
-    pixels_width = 100
+    pixels_height = 200
+    pixels_width = 200
 
     objects = create_objects()
 
@@ -442,7 +447,7 @@ def main():
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[1., 1., 1.])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height, False)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
 
 
 if __name__ == '__main__':
