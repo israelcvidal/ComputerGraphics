@@ -429,8 +429,8 @@ def main():
     d = 0.5
     window_height = 1
     window_width = 1
-    pixels_height = 200
-    pixels_width = 200
+    pixels_height = 100
+    pixels_width = 100
 
     objects = create_objects()
 
