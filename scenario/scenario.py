@@ -105,7 +105,7 @@ class Scenario(object):
         if parallel:
             import pymp
             # p = matrix of points corresponding to each pixel
-            p = pymp.shared.array((pixels_width, pixels_height, 3))
+            p = pymp.shared.array((pixels_height, pixels_width, 3))
             pymp.config.nested = True
 
             # Borders
