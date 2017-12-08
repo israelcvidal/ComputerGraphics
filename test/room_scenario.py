@@ -429,8 +429,8 @@ def main():
     d = 0.5
     window_height = 1
     window_width = 1
-    pixels_height = 200
-    pixels_width = 200
+    pixels_height = 500
+    pixels_width = 500
 
     objects = create_objects()
 
@@ -445,9 +445,9 @@ def main():
 
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
-                        ambient_light=[1., 1., 1.])
+                        ambient_light=[0.5, 0.5, 0.5])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height, False)
 
 
 if __name__ == '__main__':

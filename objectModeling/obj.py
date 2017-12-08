@@ -57,17 +57,16 @@ class Face(object):
         dot02 = np.dot(self.v0, v2)
         dot12 = np.dot(self.v1, v2)
 
-        # u = (self.dot11 * dot02 - self.dot01 * dot12) / self.det
-        # v = (self.dot00 * dot12 - self.dot01 * dot02) / self.det
-        #
-        # w = 1 - u - v
-        #
-        # return 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1
+        u = (self.dot11 * dot02 - self.dot01 * dot12) / self.det
+        v = (self.dot00 * dot12 - self.dot01 * dot02) / self.det
 
-        u = (self.dot11 * dot02 - self.dot01 * dot12)
-        v = (self.dot00 * dot12 - self.dot01 * dot02)
+        w = 1 - u - v
 
-        return u+v < self.det and u >= 0 and v >= 0
+        return 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1
+
+        # u = (self.dot11 * dot02 - self.dot01 * dot12)
+        # v = (self.dot00 * dot12 - self.dot01 * dot02)
+        # return u+v < self.det and u >= 0 and v >= 0
 
 
 

@@ -54,8 +54,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        objects_not_cut = self.objects_culling(pij)
-                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        p_int, intersected_face = self.get_intersection(pij)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
@@ -71,8 +70,7 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
-                    objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    p_int, intersected_face = self.get_intersection(pij)
 
                     # if intercept any point
                     if p_int is None:
@@ -119,8 +117,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        objects_not_cut = self.objects_culling(pij)
-                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        p_int, intersected_face = self.get_intersection(pij)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
@@ -134,8 +131,8 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        objects_not_cut = self.objects_culling(pij)
-                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        p_int, intersected_face = self.get_intersection(pij)
+
                         # if intercept any point
                         if p_int is None:
                             # print(i, j)
@@ -150,8 +147,8 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        objects_not_cut = self.objects_culling(pij)
-                        p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                        p_int, intersected_face = self.get_intersection(pij)
+
                         # if intercept any point
                         if p_int is None:
                             # print(i, j)
@@ -242,7 +239,7 @@ class Scenario(object):
 
         return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def determine_color(self, p_int, intersected_face):
+    def determine_color(self, p_int, intersected_face, shadow=True):
         """
         Return the RGB color for the pixel ij
         :param p_int: point intersected
@@ -251,9 +248,21 @@ class Scenario(object):
         """
         pij_rgb = intersected_face.material.k_a_rgb * self.ambient_light
         for light_source in self.light_sources:
-            pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
+            l = light_source.get_l(p_int)
+            l_int, l_face = self.get_intersection(p_int+l, 0)
+            if shadow:
+                if l_int is not None and l_face != intersected_face:
+                    continue
+                else:
+                    pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
+            else:
+                pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
 
         return pij_rgb
+
+    def get_intersection(self, pij, t_limit=1):
+        objects_not_cut = self.objects_culling(pij)
+        return self.get_intersected_face(objects_not_cut, pij, t_limit)
 
     def objects_culling(self, pij):
         """
@@ -306,7 +315,7 @@ class Scenario(object):
 
         return faces_not_cut
 
-    def get_intersected_face(self, objects, pij):
+    def get_intersected_face(self, objects, pij, t_limit=1):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
         :param pij: point where the ray starts
@@ -326,7 +335,7 @@ class Scenario(object):
                     continue
 
                 t = np.dot(normal, p1[:3]) / n_dot_pij
-                if t < 1 or t > intersected_face[0]:
+                if t < t_limit or t > intersected_face[0]:
                     continue
 
                 # ray and plane intersection point
@@ -341,6 +350,10 @@ class Scenario(object):
                 # now we want to check if this point is inside the face
                 if face.is_in_triangle(p):
                     intersected_face = (t, face)
+
+                if t_limit == 0 and intersected_face[1] is not None:
+                    print("entrou")
+                    break
 
         if intersected_face[1] is not None:
             return intersected_face[0] * pij, intersected_face[1]
@@ -385,6 +398,10 @@ class LightSource(object):
         self.intensity = np.array(intensity)
         self.position = np.append(position, [1])
         self.direction = np.array(direction)
+
+    def get_l(self, p_int):
+        return self.position[:3] - p_int
+        # return l / np.linalg.norm(l)
 
     def get_vectors(self, face, p_int):
         """
@@ -489,6 +506,10 @@ class InfinityLightSource(LightSource):
         :param direction: direction vector of the light
         """
         super().__init__(intensity=intensity, position=None, direction=direction)
+
+    def get_l(self, p_int):
+        return -self.direction
+        # return l / np.linalg.norm(l)
 
     def get_vectors(self, face, p_int):
         """
