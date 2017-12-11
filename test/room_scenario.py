@@ -13,33 +13,35 @@ def create_objects():
 
     # MATERIALS
 
+    specular_term = [1, 1, 1]
+    m = 10
     # WALLS MATERIAL
     rgb_wall_material = [44/255, 137/255, 142/255]
-    wall_material = obj.Material(rgb_wall_material, rgb_wall_material, rgb_wall_material, 1)
+    wall_material = obj.Material(rgb_wall_material, rgb_wall_material, specular_term, m)
 
     # CEILING MATERIAL
     rgb_ceiling_material = [200/255, 203/255, 208/255]
-    ceiling_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, rgb_ceiling_material, 1)
+    ceiling_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, specular_term, m)
 
     # FLOOR MATERIAL
-    floor_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, rgb_ceiling_material, 1)
+    floor_material = obj.Material(rgb_ceiling_material, rgb_ceiling_material, specular_term, m)
 
     #  BLACK MATERIAL
     rgb_black = [0, 0, 0]
-    black_material = obj.Material(rgb_black, rgb_black, rgb_black, 1)
+    black_material = obj.Material(rgb_black, rgb_black, specular_term, m)
 
     # WOOD MATERIAL
     rgb_wood_dark = [89/255, 63/255, 44/255]
     rgb_wood_light = [144/255, 112/255, 100/255]
-    wood_material_dark = obj.Material(rgb_wood_dark, rgb_wood_dark, rgb_wood_dark, 1)
-    wood_material_light = obj.Material(rgb_wood_light, rgb_wood_light, rgb_wood_light, 1)
+    wood_material_dark = obj.Material(rgb_wood_dark, rgb_wood_dark, specular_term, m)
+    wood_material_light = obj.Material(rgb_wood_light, rgb_wood_light, specular_term, m)
 
     # SOFA MATERIAL
     rgb_sofa = [93/255, 83/255, 87/255]
-    sofa_material = obj.Material(rgb_sofa, rgb_sofa, rgb_sofa, 1)
+    sofa_material = obj.Material(rgb_sofa, rgb_sofa, specular_term, m)
 
     rgb_gray_light = [144/255, 150/255, 169/255]
-    gray_material_light = obj.Material(rgb_gray_light, rgb_gray_light, rgb_gray_light, 1)
+    gray_material_light = obj.Material(rgb_gray_light, rgb_gray_light, specular_term, m)
 
     # OBJECTS
 
@@ -430,8 +432,8 @@ def main():
     window_height = 1
     window_width = 1
 
-    pixels_height = 100
-    pixels_width = 100
+    pixels_height = 500
+    pixels_width = 500
 
     objects = create_objects()
 
@@ -448,7 +450,7 @@ def main():
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[0.5, 0.5, 0.5])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height, False)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
 
 
 if __name__ == '__main__':

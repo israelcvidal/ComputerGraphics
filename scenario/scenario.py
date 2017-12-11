@@ -54,7 +54,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(pij)
+                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
@@ -70,7 +70,7 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
-                    p_int, intersected_face = self.get_intersection(pij)
+                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
 
                     # if intercept any point
                     if p_int is None:
@@ -117,7 +117,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(pij)
+                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
@@ -131,7 +131,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(pij)
+                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
 
                         # if intercept any point
                         if p_int is None:
@@ -147,7 +147,7 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(pij)
+                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
 
                         # if intercept any point
                         if p_int is None:
@@ -181,7 +181,7 @@ class Scenario(object):
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
                     # if intercept any point
                     if p_int is None:
                         # print(i, j)
@@ -197,7 +197,7 @@ class Scenario(object):
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
                     # if intercept any point
                     if p_int is None:
                         # print(i, j)
@@ -213,7 +213,7 @@ class Scenario(object):
                     pij = np.array([x_i, y_i, -window_distance])
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersected_face(objects_not_cut, pij)
+                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
                     # if intercept any point
                     if p_int is None:
                         p[i][j] = self.background_color
@@ -248,9 +248,10 @@ class Scenario(object):
         """
         pij_rgb = intersected_face.material.k_a_rgb * self.ambient_light
         for light_source in self.light_sources:
-            l = light_source.get_l(p_int)
-            l_int, l_face = self.get_intersection(p_int+l, 0)
+
             if shadow:
+                # l = light_source.get_l(p_int)
+                l_int, l_face = self.get_intersection(p_int, light_source.position[:3], 0)
                 if l_int is not None and l_face != intersected_face:
                     continue
                 else:
@@ -260,11 +261,11 @@ class Scenario(object):
 
         return pij_rgb
 
-    def get_intersection(self, pij, t_limit=1):
-        objects_not_cut = self.objects_culling(pij)
-        return self.get_intersected_face(objects_not_cut, pij, t_limit)
+    def get_intersection(self, r0, r1, t_limit=1):
+        objects_not_cut = self.objects_culling(r0, r1)
+        return self.get_intersected_face(objects_not_cut, r0, r1, t_limit)
 
-    def objects_culling(self, pij):
+    def objects_culling(self, r0, r1):
         """
         Return objects that the ray intersects with their have intersection sphere(aura)
         :param pij: point corresponding to a pixel ij
@@ -289,33 +290,33 @@ class Scenario(object):
 
             radius = max(dx, dy, dz)/2
 
-            a = pij.dot(pij)
-            b = -2 * (pij.dot(center))
-            c = center.dot(center) - math.pow(radius, 2)
+            a = (r1-r0).dot(r1-r0)
+            b = -2 * ((r1-r0).dot((r0-center)))
+            c = (r0-center).dot(r0-center) - math.pow(radius, 2)
             if (math.pow(b, 2) - 4 * a * c) >= 0:
                 objects_not_cut.append(object_)
 
         return objects_not_cut
 
-    def back_face_culling(self, objects, pij):
-        """
-        Return list of faces from objects that might have intersection with the ray
-        :param objects:
-        :param pij:
-        :return:
-        """
-        faces_not_cut = []
+    # def back_face_culling(self, objects, pij):
+    #     """
+    #     Return list of faces from objects that might have intersection with the ray
+    #     :param objects:
+    #     :param pij:
+    #     :return:
+    #     """
+    #     faces_not_cut = []
+    #
+    #     pij_u = pij / np.linalg.norm(pij)
+    #     pij_u = np.append(pij_u, [1])
+    #     for object_ in objects:
+    #         for face in object_.faces:
+    #             if pij_u.dot(face.normal) < 0:
+    #                 faces_not_cut.append(face)
+    #
+    #     return faces_not_cut
 
-        pij_u = pij / np.linalg.norm(pij)
-        pij_u = np.append(pij_u, [1])
-        for object_ in objects:
-            for face in object_.faces:
-                if pij_u.dot(face.normal) < 0:
-                    faces_not_cut.append(face)
-
-        return faces_not_cut
-
-    def get_intersected_face(self, objects, pij, t_limit=1):
+    def get_intersected_face(self, objects, r0, r1, t_limit=1):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
         :param pij: point where the ray starts
@@ -328,18 +329,22 @@ class Scenario(object):
                 p1 = face.vertices[0].coordinates[:3]
                 normal = face.normal[:3]
 
-                n_dot_pij = np.dot(normal, pij[:3])
+                n_dot_pij = np.dot(normal, (r1-r0)[:3])
 
                 # backface culling:
                 if n_dot_pij >= 0:
                     continue
 
-                t = np.dot(normal, p1[:3]) / n_dot_pij
+                t = np.dot(normal, (p1[:3]-r0)) / n_dot_pij
+
                 if t < t_limit or t > intersected_face[0]:
                     continue
 
+                if t_limit == 0 and t > 1:
+                    continue
+
                 # ray and plane intersection point
-                p = t * pij
+                p = r0 + (t * (r1-r0))
 
                 # if the distance of this point to the center of the triangle is
                 # greater than the max distance of a point in that triangle, than its not a valid intersection
@@ -352,11 +357,11 @@ class Scenario(object):
                     intersected_face = (t, face)
 
                 if t_limit == 0 and intersected_face[1] is not None:
-                    print("entrou")
+                    # print("entrou")
                     break
 
         if intersected_face[1] is not None:
-            return intersected_face[0] * pij, intersected_face[1]
+            return r0 + (intersected_face[0] * (r1-r0)), intersected_face[1]
         return None, None
 
     def transform_to_camera(self):
@@ -400,8 +405,8 @@ class LightSource(object):
         self.direction = np.array(direction)
 
     def get_l(self, p_int):
-        return self.position[:3] - p_int
-        # return l / np.linalg.norm(l)
+        l =  self.position[:3] - p_int
+        return l / np.linalg.norm(l)
 
     def get_vectors(self, face, p_int):
         """
@@ -508,8 +513,8 @@ class InfinityLightSource(LightSource):
         super().__init__(intensity=intensity, position=None, direction=direction)
 
     def get_l(self, p_int):
-        return -self.direction
-        # return l / np.linalg.norm(l)
+        l = -self.direction
+        return l / np.linalg.norm(l)
 
     def get_vectors(self, face, p_int):
         """
