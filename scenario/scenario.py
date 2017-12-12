@@ -59,7 +59,7 @@ class Scenario(object):
                         if p_int is None:
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(p_int, intersected_face)
+                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
         else:
             # p = matrix of points corresponding to each pixel
             p = np.ones((pixels_width, pixels_height, 3))
@@ -76,7 +76,7 @@ class Scenario(object):
                     if p_int is None:
                         p[i][j] = self.background_color
                     else:
-                        p[i][j] = self.determine_color(p_int, intersected_face)
+                        p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
 
         end = time.time()
@@ -84,7 +84,7 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True):
+    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height, projection_type="PERSPECTIVE", oblique_angle=0.0, oblique_factor=0.0,  parallel=True):
         """
 
         :param window_width: width of window to open on the plane
@@ -96,6 +96,18 @@ class Scenario(object):
         """
         print("Starting ray_casting_mean()...")
         start = time.time()
+
+        if projection_type == "PERSPECTIVE":
+            pass
+        elif projection_type == "CABINET":
+            pass
+        elif projection_type == "CAVALIER":
+            pass
+        elif projection_type == "OBLIQUE":
+            pass
+        else:
+            print("INVALID PROJECTION!")
+            exit()
 
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
@@ -122,7 +134,7 @@ class Scenario(object):
                         if p_int is None:
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(p_int, intersected_face)
+                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
 
                 # First and last line:
                 for i in [0, pixels_height-1]:
@@ -138,7 +150,7 @@ class Scenario(object):
                             # print(i, j)
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(p_int, intersected_face)
+                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
 
                 # Alternating pixels
                 for i in p1.range(pixels_height):
@@ -154,7 +166,7 @@ class Scenario(object):
                             # print(i, j)
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(p_int, intersected_face)
+                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
 
             for i in range(0, pixels_height-1):
                 for j in range(2 - (i % 2), pixels_width-1, 2):
@@ -239,7 +251,7 @@ class Scenario(object):
 
         return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def determine_color(self, p_int, intersected_face, shadow=True):
+    def determine_color(self,r0, p_int, intersected_face, shadow=True):
         """
         Return the RGB color for the pixel ij
         :param p_int: point intersected
@@ -255,9 +267,9 @@ class Scenario(object):
                 if l_int is not None and l_face != intersected_face:
                     continue
                 else:
-                    pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
+                    pij_rgb += light_source.get_total_intensity(r0, intersected_face, p_int)
             else:
-                pij_rgb += light_source.get_total_intensity(intersected_face, p_int)
+                pij_rgb += light_source.get_total_intensity(r0, intersected_face, p_int)
 
         return pij_rgb
 
@@ -405,10 +417,10 @@ class LightSource(object):
         self.direction = np.array(direction)
 
     def get_l(self, p_int):
-        l =  self.position[:3] - p_int
+        l = self.position[:3] - p_int
         return l / np.linalg.norm(l)
 
-    def get_vectors(self, face, p_int):
+    def get_vectors(self, r0, face, p_int):
         """
         Return the unitary vectors n, l, u and r
         :param face: face intersected by the ray
@@ -420,21 +432,21 @@ class LightSource(object):
         l = self.position[:3] - p_int
         l_u = (l / np.linalg.norm(l))
 
-        v = -p_int
+        v = r0-p_int
         v_u = (v / np.linalg.norm(v))
 
         r = 2 * (np.dot(l_u, n_u)) * n_u - l_u
 
         return n_u, l_u, v_u, r
 
-    def get_total_intensity(self, face, p_int):
+    def get_total_intensity(self, r0, face, p_int):
         """
         Return the sum of the diffuse and specular term
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
         """
-        n, l, v, r = self.get_vectors(face, p_int)
+        n, l, v, r = self.get_vectors(r0, face, p_int)
 
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
@@ -474,14 +486,14 @@ class SpotLightSource(LightSource):
         super().__init__(intensity, position, direction)
         self.theta = theta
 
-    def get_total_intensity(self, face, p_int):
+    def get_total_intensity(self, r0, face, p_int):
         """
         Return the sum of the diffuse and specular term
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
         """
-        n, l, v, r = self.get_vectors(face, p_int)
+        n, l, v, r = self.get_vectors(r0, face, p_int)
 
         k_d_rgb = face.material.k_d_rgb
         k_e_rgb = face.material.k_e_rgb
@@ -516,7 +528,7 @@ class InfinityLightSource(LightSource):
         l = -self.direction
         return l / np.linalg.norm(l)
 
-    def get_vectors(self, face, p_int):
+    def get_vectors(self, r0, face, p_int):
         """
         Return the unitary vectors n, l, u and r
         :param face: face intersected by the ray
@@ -528,7 +540,7 @@ class InfinityLightSource(LightSource):
         l = -self.direction
         l_u = (l / np.linalg.norm(l))
 
-        v = -p_int
+        v = r0-p_int
         v_u = (v / np.linalg.norm(v))
 
         r = 2 * (np.dot(l_u, n_u)) * n_u - l_u
