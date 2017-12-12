@@ -31,8 +31,8 @@ class GLWidget(QOpenGLWidget):
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(30, width / height, 0.5, 100)
-        gluLookAt(-1.5,2.,12, 1.5,1.5,0, 0,1,0)
+        gluPerspective(45, width / height, 0.5, 100)
+        gluLookAt(1.5,1.5,7, 1.5,1.5,0, 0,1,0)
 
 
     def paintGL(self):
@@ -56,21 +56,46 @@ class GLWidget(QOpenGLWidget):
         self.draw_polygon(cube)
         glPopMatrix()
 
+        # TETO
+        glPushMatrix()
+        glTranslatef(0, 3., 0)
+        glScalef(3., 0.1, 4.)
+        self.draw_polygon(cube)
+        glPopMatrix()
+
+        # PAREDE TRÁS
+        glPushMatrix()
+        glScalef(3., 3., 0.1)
+        self.draw_polygon(cube)
+        glPopMatrix()
+
         # PAREDE ESQUERDA
         glPushMatrix()
         glTranslatef(0, 1, 0)
-        glScalef(0.1, 2., 0.75)
+        glScalef(0.1, 1.4, 0.75)
         self.draw_polygon(cube)
         glPopMatrix()
 
         glPushMatrix()
         glTranslatef(0, 1, 1.75)
-        glScalef(0.1, 2., 0.5)
+        glScalef(0.1, 1.4, 0.5)
+        self.draw_polygon(cube)
+        glPopMatrix()
+
+        glPushMatrix()
+        glTranslatef(0, 1, 3.25)
+        glScalef(0.1, 1.4, 0.75)
         self.draw_polygon(cube)
         glPopMatrix()
 
         glPushMatrix()
         glScalef(0.1, 1., 4.)
+        self.draw_polygon(cube)
+        glPopMatrix()
+
+        glPushMatrix()
+        glTranslatef(0, 2.4, 0)
+        glScalef(0.1, 0.6, 4.)
         self.draw_polygon(cube)
         glPopMatrix()
         
@@ -81,17 +106,6 @@ class GLWidget(QOpenGLWidget):
         self.draw_polygon(cube)
         glPopMatrix()
 
-        glPushMatrix()
-        glTranslatef(0.1, 1., 1.)
-        glScalef(0.1, 2., 4.)
-        self.draw_polygon(cube)
-        glPopMatrix()
-
-        glPushMatrix()
-        glTranslatef(5.9, 0., 0.)
-        glScalef(0.1, 3., 4.)
-        self.draw_polygon(cube)
-        glPopMatrix()
 
     def draw_polygon(self, obj):
         for face in obj.faces:
@@ -103,15 +117,15 @@ class GLWidget(QOpenGLWidget):
             glBegin(GL_POLYGON)
             for vertex in face.vertices:
                 glNormal3fv(vertex.normal)
-                glVertex3f(vertex.coordinates[0], vertex.coordinates[1], vertex.coordinates[2])
+                glVertex3fv(vertex.coordinates[:3])
             glEnd()
             '''
             glBegin(GL_LINES)
             for vertex in face.vertices:
-                vx = float(vertex.coordinates[0]) + float(vertex.normal[0])
-                vy = float(vertex.coordinates[1]) + float(vertex.normal[1])
-                vz = float(vertex.coordinates[2]) + float(vertex.normal[2])
-                glVertex3f(vertex.coordinates[0], vertex.coordinates[1], vertex.coordinates[2])
+                vx = vertex.coordinates[0] + vertex.normal[0]
+                vy = vertex.coordinates[1] + vertex.normal[1]
+                vz = vertex.coordinates[2] + vertex.normal[2]
                 glVertex3f(vx, vy, vz)
-            glEnd()'''
-            
+                glVertex3fv(vertex.coordinates[:3])
+            glEnd()
+            '''

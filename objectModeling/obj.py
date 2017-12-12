@@ -145,7 +145,7 @@ class Obj(object):
                 if values[0] == 'f':
                     self.add_face(vertices[values[1]], vertices[values[2]], vertices[values[3]], materials[mtl])
                 if values[0] == 'vn':
-                    vertices[str(i)].normal = np.array([values[1], values[2], values[3]])
+                    vertices[str(i)].normal = np.array([float(values[1]), float(values[2]), float(values[3])])
                     i = i + 1
 
         return self
