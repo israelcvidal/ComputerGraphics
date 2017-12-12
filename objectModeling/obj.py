@@ -10,9 +10,10 @@ class Material(object):
 
 
 class Vertex(object):
-    def __init__(self, vertex_id, coordinates):
+    def __init__(self, vertex_id, coordinates, normal=None):
         self.vertex_id = vertex_id
         self.coordinates = np.array(coordinates)
+        self.normal = np.array(normal)
 
 
 class Face(object):
@@ -126,6 +127,7 @@ class Obj(object):
         vertices = {}
 
         with open(name) as file:
+            i = 1
             for line in file:
                 if line.startswith('#'): continue
                 values = line.split()
@@ -142,6 +144,9 @@ class Obj(object):
                     vertices[str(vertex.vertex_id)] = vertex
                 if values[0] == 'f':
                     self.add_face(vertices[values[1]], vertices[values[2]], vertices[values[3]], materials[mtl])
+                if values[0] == 'vn':
+                    vertices[str(i)].normal = np.array([float(values[1]), float(values[2]), float(values[3])])
+                    i = i + 1
 
         return self
 
