@@ -457,7 +457,7 @@ def main():
                         ambient_light=[0.5, 0.5, 0.5])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height,
-                    ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
+                    ray_mean=True, parallel=True, shadow=True, projection_type=projection_type,
                     oblique_angle=0, oblique_factor=0)
 
 if __name__ == '__main__':

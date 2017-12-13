@@ -632,8 +632,8 @@ class LightSource(object):
         self.direction = np.array(direction)
 
     def get_l(self, p_int):
-        l = self.position[:3] - p_int
-        return l / np.linalg.norm(l)
+        return self.position[:3] - p_int
+        # return l / np.linalg.norm(l)
 
     def get_vectors(self, r0, face, p_int):
         """
@@ -740,8 +740,8 @@ class InfinityLightSource(LightSource):
         super().__init__(intensity=intensity, position=None, direction=direction)
 
     def get_l(self, p_int):
-        l = -self.direction
-        return l / np.linalg.norm(l)
+        return -self.direction
+        # return l / np.linalg.norm(l)
 
     def get_vectors(self, r0, face, p_int):
         """
