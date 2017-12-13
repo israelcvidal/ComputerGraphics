@@ -1,7 +1,8 @@
-from transformations import world_camera_transformations as wct
-from scenario import scenario as sc
 import numpy as np
-from objectModeling import obj
+
+from ray_casting.objectModeling import obj
+from ray_casting.scenario import scenario as sc
+from ray_casting.transformations import world_camera_transformations as wct
 
 
 def ap2(matricula):

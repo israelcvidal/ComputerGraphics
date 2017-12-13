@@ -1,8 +1,10 @@
-import numpy as np
 import math
-from transformations import world_camera_transformations as wct
-import matplotlib.pyplot as plt
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ray_casting.transformations import world_camera_transformations as wct
 
 
 class Scenario(object):

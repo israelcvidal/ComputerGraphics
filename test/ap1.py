@@ -1,6 +1,6 @@
 import sys
 sys.path.append("..")
-from transformations.model_transformations import *
+from ray_casting.transformations.model_transformations import *
 
 
 def prova(matricula):

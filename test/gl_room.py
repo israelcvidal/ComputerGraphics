@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
 
-from mainwindow import Window
+from opengl.GUI.mainwindow import Window
 from PyQt5.QtWidgets import QApplication
 
 if __name__ == '__main__':

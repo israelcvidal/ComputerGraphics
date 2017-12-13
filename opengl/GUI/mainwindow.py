@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QVBoxLayout, QWidget)
 
-from glwidget import GLWidget
+from opengl.GUI.glwidget import GLWidget
 
 class Window(QWidget):
     def __init__(self, width, height):
@@ -11,3 +11,4 @@ class Window(QWidget):
         mainLayout = QVBoxLayout(self)
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
+

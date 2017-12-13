@@ -1,9 +1,9 @@
 import sys
 sys.path.append("..")
-from scenario.scenario import *
-from transformations import model_transformations as mt
+from ray_casting.transformations import model_transformations as mt
 import copy
-from objectModeling import obj
+from ray_casting.objectModeling import obj
+
 
 def main():
     d = 0.3

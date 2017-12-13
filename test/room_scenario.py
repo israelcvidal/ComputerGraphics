@@ -1,10 +1,9 @@
 import sys
 sys.path.append("..")
-from scenario.scenario import *
-from transformations import model_transformations as mt
+from ray_casting.transformations import model_transformations as mt
 import copy
-from objectModeling import obj
-
+from ray_casting.objectModeling import obj
+from ray_casting.scenario.scenario import *
 
 def create_objects():
     cube = obj.Obj().import_obj('../objects/cube.obj')
@@ -255,7 +254,6 @@ def create_objects():
     tv_detail4 = copy.deepcopy(tv_detail3)
     tv_detail4.apply_transformation(t)
     tv_detail4.apply_material(black_material)
-
     objects.append(tv_detail4)
 
     # TV RACK
@@ -432,8 +430,8 @@ def main():
     window_height = 1
     window_width = 1
 
-    pixels_height = 500
-    pixels_width = 500
+    pixels_height = 100
+    pixels_width = 100
 
     objects = create_objects()
 
