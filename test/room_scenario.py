@@ -448,7 +448,8 @@ def main():
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[0.5, 0.5, 0.5])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height, True)
+    scenario.render(window_width, window_height, d, pixels_width, pixels_height,
+                    ray_mean=True, parallel=True, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None)
 
 
 if __name__ == '__main__':

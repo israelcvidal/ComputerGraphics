@@ -26,7 +26,7 @@ class Scenario(object):
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
 
-    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True):
+    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
         """
         :param window_width: width of window to open on the plane
         :param window_height: height of window to open on the plane
@@ -55,13 +55,40 @@ class Scenario(object):
                     for j in range(pixels_width):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
+                        r0 = np.array([0, 0, 0])
+                        d = pij
+
+                        if projection_type == "PERSPECTIVE":
+                            pass
+                        elif projection_type == "CABINET":
+                            r0 = pij
+                            d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
+                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                          -1 / math.sqrt(5) * 2])
+                        elif projection_type == "CAVALIER":
+                            r0 = pij
+                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                          -math.sqrt(2) / 2])
+                        elif projection_type == "OBLIQUE":
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                          -oblique_factor * math.sin(oblique_angle),
+                                          -oblique_factor])
+                        elif projection_type == "ORTHOGRAPHIC":
+                            r0 = pij
+                            d = np.array([0, 0, -1])
+                        else:
+                            print("INVALID PROJECTION!")
+                            exit()
+
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                        p_int, intersected_face = self.get_intersection(r0, d)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
+                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
         else:
             # p = matrix of points corresponding to each pixel
             p = np.ones((pixels_width, pixels_height, 3))
@@ -71,14 +98,42 @@ class Scenario(object):
                 for j in range(pixels_width):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
+
+                    r0 = np.array([0, 0, 0])
+                    d = pij
+
+                    if projection_type == "PERSPECTIVE":
+                        pass
+                    elif projection_type == "CABINET":
+                        r0 = pij
+                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
+                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                      -1 / math.sqrt(5) * 2])
+                    elif projection_type == "CAVALIER":
+                        r0 = pij
+                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                      -math.sqrt(2) / 2])
+                    elif projection_type == "OBLIQUE":
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                      -oblique_factor * math.sin(oblique_angle),
+                                      -oblique_factor])
+                    elif projection_type == "ORTHOGRAPHIC":
+                        r0 = pij
+                        d = np.array([0, 0, -1])
+                    else:
+                        print("INVALID PROJECTION!")
+                        exit()
+
                     # getting face  intercepted and point of intersection of ray pij
-                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                    p_int, intersected_face = self.get_intersection(r0, d)
 
                     # if intercept any point
                     if p_int is None:
                         p[i][j] = self.background_color
                     else:
-                        p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
+                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
 
         end = time.time()
@@ -86,7 +141,7 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height, projection_type="PERSPECTIVE", oblique_angle=0.0, oblique_factor=0.0,  parallel=True):
+    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
         """
 
         :param window_width: width of window to open on the plane
@@ -98,18 +153,6 @@ class Scenario(object):
         """
         print("Starting ray_casting_mean()...")
         start = time.time()
-
-        if projection_type == "PERSPECTIVE":
-            pass
-        elif projection_type == "CABINET":
-            pass
-        elif projection_type == "CAVALIER":
-            pass
-        elif projection_type == "OBLIQUE":
-            pass
-        else:
-            print("INVALID PROJECTION!")
-            exit()
 
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
@@ -130,13 +173,41 @@ class Scenario(object):
                     for j in [0, pixels_width-1]:
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
+
+                        r0 = np.array([0, 0, 0])
+                        d = pij
+
+                        if projection_type == "PERSPECTIVE":
+                            pass
+                        elif projection_type == "CABINET":
+                            r0 = pij
+                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
+                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                          -1 / math.sqrt(5) * 2])
+                        elif projection_type == "CAVALIER":
+                            r0 = pij
+                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                          -math.sqrt(2) / 2])
+                        elif projection_type == "OBLIQUE":
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                          -oblique_factor * math.sin(oblique_angle),
+                                          -oblique_factor])
+                        elif projection_type == "ORTHOGRAPHIC":
+                            r0 = pij
+                            d = np.array([0, 0, -1])
+                        else:
+                            print("INVALID PROJECTION!")
+                            exit()
+
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                        p_int, intersected_face = self.get_intersection(r0, d)
                         # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
+                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
                 # First and last line:
                 for i in [0, pixels_height-1]:
@@ -144,15 +215,43 @@ class Scenario(object):
                     for j in p1.range(pixels_width):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
+
+                        r0 = np.array([0, 0, 0])
+                        d = pij
+
+                        if projection_type == "PERSPECTIVE":
+                            pass
+                        elif projection_type == "CABINET":
+                            r0 = pij
+                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
+                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                          -1 / math.sqrt(5) * 2])
+                        elif projection_type == "CAVALIER":
+                            r0 = pij
+                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                          -math.sqrt(2) / 2])
+                        elif projection_type == "OBLIQUE":
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                          -oblique_factor * math.sin(oblique_angle),
+                                          -oblique_factor])
+                        elif projection_type == "ORTHOGRAPHIC":
+                            r0 = pij
+                            d = np.array([0, 0, -1])
+                        else:
+                            print("INVALID PROJECTION!")
+                            exit()
+
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                        p_int, intersected_face = self.get_intersection(r0, d)
 
                         # if intercept any point
                         if p_int is None:
                             # print(i, j)
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
+                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
                 # Alternating pixels
                 for i in p1.range(pixels_height):
@@ -160,15 +259,43 @@ class Scenario(object):
                     for j in range(1 + (i % 2), pixels_width, 2):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
+
+                        r0 = np.array([0, 0, 0])
+                        d = pij
+
+                        if projection_type == "PERSPECTIVE":
+                            pass
+                        elif projection_type == "CABINET":
+                            r0 = pij
+                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
+                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                          -1 / math.sqrt(5) * 2])
+                        elif projection_type == "CAVALIER":
+                            r0 = pij
+                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                          -math.sqrt(2) / 2])
+                        elif projection_type == "OBLIQUE":
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                          -oblique_factor * math.sin(oblique_angle),
+                                          -oblique_factor])
+                        elif projection_type == "ORTHOGRAPHIC":
+                            r0 = pij
+                            d = np.array([0, 0, -1])
+                        else:
+                            print("INVALID PROJECTION!")
+                            exit()
+
                         # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                        p_int, intersected_face = self.get_intersection(r0, d)
 
                         # if intercept any point
                         if p_int is None:
                             # print(i, j)
                             p[i][j] = self.background_color
                         else:
-                            p[i][j] = self.determine_color(np.array([0, 0, 0]), p_int, intersected_face)
+                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
             for i in range(0, pixels_height-1):
                 for j in range(2 - (i % 2), pixels_width-1, 2):
@@ -193,15 +320,43 @@ class Scenario(object):
                 for j in [0, pixels_width - 1]:
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
+
+                    r0 = np.array([0, 0, 0])
+                    d = pij
+
+                    if projection_type == "PERSPECTIVE":
+                        pass
+                    elif projection_type == "CABINET":
+                        r0 = pij
+                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
+                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                      -1 / math.sqrt(5) * 2])
+                    elif projection_type == "CAVALIER":
+                        r0 = pij
+                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                      -math.sqrt(2) / 2])
+                    elif projection_type == "OBLIQUE":
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                      -oblique_factor * math.sin(oblique_angle),
+                                      -oblique_factor])
+                    elif projection_type == "ORTHOGRAPHIC":
+                        r0 = pij
+                        d = np.array([0, 0, -1])
+                    else:
+                        print("INVALID PROJECTION!")
+                        exit()
+
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                    p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
                         # print(i, j)
                         p[i][j] = self.background_color
                     else:
-                        p[i][j] = self.determine_color(p_int, intersected_face)
+                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
             # First and last line:
             for i in [0, pixels_height - 1]:
@@ -209,15 +364,43 @@ class Scenario(object):
                 for j in range(pixels_width):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
+
+                    r0 = np.array([0, 0, 0])
+                    d = pij
+
+                    if projection_type == "PERSPECTIVE":
+                        pass
+                    elif projection_type == "CABINET":
+                        r0 = pij
+                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
+                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                      -1 / math.sqrt(5) * 2])
+                    elif projection_type == "CAVALIER":
+                        r0 = pij
+                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                      -math.sqrt(2) / 2])
+                    elif projection_type == "OBLIQUE":
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                      -oblique_factor * math.sin(oblique_angle),
+                                      -oblique_factor])
+                    elif projection_type == "ORTHOGRAPHIC":
+                        r0 = pij
+                        d = np.array([0, 0, -1])
+                    else:
+                        print("INVALID PROJECTION!")
+                        exit()
+
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                    p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
                         # print(i, j)
                         p[i][j] = self.background_color
                     else:
-                        p[i][j] = self.determine_color(p_int, intersected_face)
+                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
             # Alternating pixels
             for i in range(pixels_height):
@@ -225,14 +408,42 @@ class Scenario(object):
                 for j in range(1 + i % 2, pixels_width, 2):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
+
+                    r0 = np.array([0, 0, 0])
+                    d = pij
+
+                    if projection_type == "PERSPECTIVE":
+                        pass
+                    elif projection_type == "CABINET":
+                        r0 = pij
+                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
+                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
+                                      -1 / math.sqrt(5) * 2])
+                    elif projection_type == "CAVALIER":
+                        r0 = pij
+                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
+                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
+                                      -math.sqrt(2) / 2])
+                    elif projection_type == "OBLIQUE":
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(oblique_angle),
+                                      -oblique_factor * math.sin(oblique_angle),
+                                      -oblique_factor])
+                    elif projection_type == "ORTHOGRAPHIC":
+                        r0 = pij
+                        d = np.array([0, 0, -1])
+                    else:
+                        print("INVALID PROJECTION!")
+                        exit()
+
                     # getting face  intercepted and point of intersection of ray pij
                     objects_not_cut = self.objects_culling(pij)
-                    p_int, intersected_face = self.get_intersection(np.array([0, 0, 0]), pij)
+                    p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
                         p[i][j] = self.background_color
                     else:
-                        p[i][j] = self.determine_color(p_int, intersected_face)
+                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
 
             for i in range(0, pixels_height-1):
                 for j in range(2 - (i % 2), pixels_width-1, 2):
@@ -253,7 +464,7 @@ class Scenario(object):
 
         return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def determine_color(self,r0, p_int, intersected_face, shadow=True):
+    def determine_color(self, r0, p_int, intersected_face, shadow=True):
         """
         Return the RGB color for the pixel ij
         :param p_int: point intersected
@@ -264,8 +475,7 @@ class Scenario(object):
         for light_source in self.light_sources:
 
             if shadow:
-                # l = light_source.get_l(p_int)
-                l_int, l_face = self.get_intersection(p_int, light_source.position[:3], 0)
+                l_int, l_face = self.get_intersection(p_int, light_source.get_l(p_int), 0, intersected_face)
                 if l_int is not None and l_face != intersected_face:
                     continue
                 else:
@@ -275,11 +485,11 @@ class Scenario(object):
 
         return pij_rgb
 
-    def get_intersection(self, r0, r1, t_limit=1):
-        objects_not_cut = self.objects_culling(r0, r1)
-        return self.get_intersected_face(objects_not_cut, r0, r1, t_limit)
+    def get_intersection(self, r0, d, t_limit=1, face_int=None):
+        objects_not_cut = self.objects_culling(r0, d)
+        return self.get_intersected_face(objects_not_cut, r0, d, t_limit, face_int)
 
-    def objects_culling(self, r0, r1):
+    def objects_culling(self, r0, d):
         """
         Return objects that the ray intersects with their have intersection sphere(aura)
         :param pij: point corresponding to a pixel ij
@@ -304,8 +514,8 @@ class Scenario(object):
 
             radius = max(dx, dy, dz)/2
 
-            a = (r1-r0).dot(r1-r0)
-            b = -2 * ((r1-r0).dot((r0-center)))
+            a = d.dot(d)
+            b = -2 * d.dot((r0-center))
             c = (r0-center).dot(r0-center) - math.pow(radius, 2)
             if (math.pow(b, 2) - 4 * a * c) >= 0:
                 objects_not_cut.append(object_)
@@ -330,7 +540,7 @@ class Scenario(object):
     #
     #     return faces_not_cut
 
-    def get_intersected_face(self, objects, r0, r1, t_limit=1):
+    def get_intersected_face(self, objects, r0, d, t_limit=1, face_int=None):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
         :param pij: point where the ray starts
@@ -343,7 +553,7 @@ class Scenario(object):
                 p1 = face.vertices[0].coordinates[:3]
                 normal = face.normal[:3]
 
-                n_dot_pij = np.dot(normal, (r1-r0)[:3])
+                n_dot_pij = np.dot(normal, d[:3])
 
                 # backface culling:
                 if n_dot_pij >= 0:
@@ -358,7 +568,7 @@ class Scenario(object):
                     continue
 
                 # ray and plane intersection point
-                p = r0 + (t * (r1-r0))
+                p = r0 + (t * d)
 
                 # if the distance of this point to the center of the triangle is
                 # greater than the max distance of a point in that triangle, than its not a valid intersection
@@ -370,12 +580,11 @@ class Scenario(object):
                 if face.is_in_triangle(p):
                     intersected_face = (t, face)
 
-                if t_limit == 0 and intersected_face[1] is not None:
-                    # print("entrou")
+                if t_limit == 0 and intersected_face[1] is not None and face_int != intersected_face:
                     break
 
         if intersected_face[1] is not None:
-            return r0 + (intersected_face[0] * (r1-r0)), intersected_face[1]
+            return r0 + (intersected_face[0] * d), intersected_face[1]
         return None, None
 
     def transform_to_camera(self):
@@ -400,11 +609,18 @@ class Scenario(object):
         for light_source in self.light_sources:
             light_source.position = cw_matrix.dot(light_source.position)
 
-    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height, ray_mean=True):
+    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height, ray_mean=True,
+               parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None):
         if ray_mean:
-            scenario = self.ray_casting_mean(window_width, window_height, window_distance, pixels_width, pixels_height)
+
+            scenario = self.ray_casting_mean(window_width, window_height, window_distance, pixels_width, pixels_height,
+                                             parallel=parallel, shadow=shadow, projection_type=projection_type,
+                                             oblique_angle=oblique_angle, oblique_factor=oblique_factor)
         else:
-            scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height)
+            scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height,
+                                        parallel=parallel, shadow=shadow, projection_type=projection_type,
+                                        oblique_angle=oblique_angle, oblique_factor=oblique_factor)
+
         plt.imshow(scenario)
         plt.show()
 
