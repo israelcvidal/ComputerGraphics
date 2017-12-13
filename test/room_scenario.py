@@ -444,13 +444,21 @@ def main():
     look_at = np.array([1.5, 1.5, 0, 1.0])
     a_vup = look_at + [0, 1, 0., 0]
 
+    p = "PERSPECTIVE"
+    ob = "OBLIQUE"
+    cb = "CABINET"
+    cv = "CAVALIER"
+    ort = "ORTHOGRAPHIC"
+
+    projection_type = p
+
     scenario = Scenario(objects=objects, light_sources=[punctual_light],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[0.5, 0.5, 0.5])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height,
-                    ray_mean=True, parallel=True, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None)
-
+                    ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
+                    oblique_angle=0, oblique_factor=0)
 
 if __name__ == '__main__':
     main()

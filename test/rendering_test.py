@@ -52,5 +52,6 @@ def main():
                     ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
                     oblique_angle=0, oblique_factor=0)
 
+
 if __name__ == '__main__':
     main()
