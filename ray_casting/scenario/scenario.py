@@ -349,7 +349,6 @@ class Scenario(object):
                         exit()
 
                     # getting face  intercepted and point of intersection of ray pij
-                    objects_not_cut = self.objects_culling(pij)
                     p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
@@ -393,7 +392,6 @@ class Scenario(object):
                         exit()
 
                     # getting face  intercepted and point of intersection of ray pij
-                    objects_not_cut = self.objects_culling(pij)
                     p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
@@ -437,7 +435,6 @@ class Scenario(object):
                         exit()
 
                     # getting face  intercepted and point of intersection of ray pij
-                    objects_not_cut = self.objects_culling(pij)
                     p_int, intersected_face = self.get_intersection(r0, d)
                     # if intercept any point
                     if p_int is None:
