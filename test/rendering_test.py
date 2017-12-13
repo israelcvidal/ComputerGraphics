@@ -3,6 +3,7 @@ sys.path.append("..")
 from ray_casting.transformations import model_transformations as mt
 import copy
 from ray_casting.objectModeling import obj
+from ray_casting.scenario.scenario import *
 
 
 def main():
@@ -50,8 +51,6 @@ def main():
     scenario.render(window_width, window_height, d, pixels_width, pixels_height,
                     ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
                     oblique_angle=0, oblique_factor=0)
-
-
 
 if __name__ == '__main__':
     main()
