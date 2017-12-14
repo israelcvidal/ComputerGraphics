@@ -43,6 +43,25 @@ class Scenario(object):
         # transforming all objects to camera
         self.transform_to_camera()
 
+        oblique = False
+        if projection_type == "PERSPECTIVE":
+            pass
+        elif projection_type == "CABINET":
+            oblique = True
+            oblique_factor = 1/2
+        elif projection_type == "CAVALIER":
+            oblique = True
+            oblique_factor = 1
+        elif projection_type == "OBLIQUE":
+            oblique = True
+            pass
+        elif projection_type == "ORTHOGRAPHIC":
+            oblique = True
+            oblique_factor = 0
+        else:
+            print("INVALID PROJECTION!")
+            exit()
+
         if parallel:
             import pymp
             # p = matrix of points corresponding to each pixel
@@ -55,32 +74,16 @@ class Scenario(object):
                     for j in range(pixels_width):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
-                        r0 = np.array([0, 0, 0])
-                        d = pij
 
-                        if projection_type == "PERSPECTIVE":
-                            pass
-                        elif projection_type == "CABINET":
-                            r0 = pij
-                            d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
-                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                          -1 / math.sqrt(5) * 2])
-                        elif projection_type == "CAVALIER":
-                            r0 = pij
-                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                          -math.sqrt(2) / 2])
-                        elif projection_type == "OBLIQUE":
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                          -oblique_factor * math.sin(oblique_angle),
-                                          -oblique_factor])
-                        elif projection_type == "ORTHOGRAPHIC":
-                            r0 = pij
-                            d = np.array([0, 0, -1])
+                        if not oblique:
+                            r0 = np.array([0, 0, 0])
+                            d = pij
                         else:
-                            print("INVALID PROJECTION!")
-                            exit()
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                          -1])
+                            d = d / np.linalg.norm(d)
 
                         # getting face  intercepted and point of intersection of ray pij
                         p_int, intersected_face = self.get_intersection(r0, d)
@@ -99,32 +102,15 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
 
-                    r0 = np.array([0, 0, 0])
-                    d = pij
-
-                    if projection_type == "PERSPECTIVE":
-                        pass
-                    elif projection_type == "CABINET":
-                        r0 = pij
-                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
-                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                      -1 / math.sqrt(5) * 2])
-                    elif projection_type == "CAVALIER":
-                        r0 = pij
-                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                      -math.sqrt(2) / 2])
-                    elif projection_type == "OBLIQUE":
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                      -oblique_factor * math.sin(oblique_angle),
-                                      -oblique_factor])
-                    elif projection_type == "ORTHOGRAPHIC":
-                        r0 = pij
-                        d = np.array([0, 0, -1])
+                    if not oblique:
+                        r0 = np.array([0, 0, 0])
+                        d = pij
                     else:
-                        print("INVALID PROJECTION!")
-                        exit()
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                      -1])
+                        d = d / np.linalg.norm(d)
 
                     # getting face  intercepted and point of intersection of ray pij
                     p_int, intersected_face = self.get_intersection(r0, d)
@@ -141,7 +127,7 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
+    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=45.0, oblique_factor=1.0):
         """
 
         :param window_width: width of window to open on the plane
@@ -159,6 +145,25 @@ class Scenario(object):
         # transforming all objects to camera
         self.transform_to_camera()
 
+        oblique = False
+        if projection_type == "PERSPECTIVE":
+            pass
+        elif projection_type == "CABINET":
+            oblique = True
+            oblique_factor = 1 / 2
+        elif projection_type == "CAVALIER":
+            oblique = True
+            oblique_factor = 1
+        elif projection_type == "OBLIQUE":
+            oblique = True
+            pass
+        elif projection_type == "ORTHOGRAPHIC":
+            oblique = True
+            oblique_factor = 0
+        else:
+            print("INVALID PROJECTION!")
+            exit()
+
         if parallel:
             import pymp
             # p = matrix of points corresponding to each pixel
@@ -174,32 +179,15 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
 
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-
-                        if projection_type == "PERSPECTIVE":
-                            pass
-                        elif projection_type == "CABINET":
-                            r0 = pij
-                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
-                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                          -1 / math.sqrt(5) * 2])
-                        elif projection_type == "CAVALIER":
-                            r0 = pij
-                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                          -math.sqrt(2) / 2])
-                        elif projection_type == "OBLIQUE":
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                          -oblique_factor * math.sin(oblique_angle),
-                                          -oblique_factor])
-                        elif projection_type == "ORTHOGRAPHIC":
-                            r0 = pij
-                            d = np.array([0, 0, -1])
+                        if not oblique:
+                            r0 = np.array([0, 0, 0])
+                            d = pij
                         else:
-                            print("INVALID PROJECTION!")
-                            exit()
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                          -1])
+                            d = d / np.linalg.norm(d)
 
                         # getting face  intercepted and point of intersection of ray pij
                         p_int, intersected_face = self.get_intersection(r0, d)
@@ -216,32 +204,15 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
 
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-
-                        if projection_type == "PERSPECTIVE":
-                            pass
-                        elif projection_type == "CABINET":
-                            r0 = pij
-                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
-                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                          -1 / math.sqrt(5) * 2])
-                        elif projection_type == "CAVALIER":
-                            r0 = pij
-                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                          -math.sqrt(2) / 2])
-                        elif projection_type == "OBLIQUE":
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                          -oblique_factor * math.sin(oblique_angle),
-                                          -oblique_factor])
-                        elif projection_type == "ORTHOGRAPHIC":
-                            r0 = pij
-                            d = np.array([0, 0, -1])
+                        if not oblique:
+                            r0 = np.array([0, 0, 0])
+                            d = pij
                         else:
-                            print("INVALID PROJECTION!")
-                            exit()
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                          -1])
+                            d = d / np.linalg.norm(d)
 
                         # getting face  intercepted and point of intersection of ray pij
                         p_int, intersected_face = self.get_intersection(r0, d)
@@ -260,32 +231,15 @@ class Scenario(object):
                         x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                         pij = np.array([x_i, y_i, -window_distance])
 
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-
-                        if projection_type == "PERSPECTIVE":
-                            pass
-                        elif projection_type == "CABINET":
-                            r0 = pij
-                            d = np.array([-1/math.sqrt(5) * math.cos(oblique_angle),
-                                          -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                          -1 / math.sqrt(5) * 2])
-                        elif projection_type == "CAVALIER":
-                            r0 = pij
-                            d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                          -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                          -math.sqrt(2) / 2])
-                        elif projection_type == "OBLIQUE":
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                          -oblique_factor * math.sin(oblique_angle),
-                                          -oblique_factor])
-                        elif projection_type == "ORTHOGRAPHIC":
-                            r0 = pij
-                            d = np.array([0, 0, -1])
+                        if not oblique:
+                            r0 = np.array([0, 0, 0])
+                            d = pij
                         else:
-                            print("INVALID PROJECTION!")
-                            exit()
+                            r0 = pij
+                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                          -1])
+                            d = d / np.linalg.norm(d)
 
                         # getting face  intercepted and point of intersection of ray pij
                         p_int, intersected_face = self.get_intersection(r0, d)
@@ -321,32 +275,15 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
 
-                    r0 = np.array([0, 0, 0])
-                    d = pij
-
-                    if projection_type == "PERSPECTIVE":
-                        pass
-                    elif projection_type == "CABINET":
-                        r0 = pij
-                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
-                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                      -1 / math.sqrt(5) * 2])
-                    elif projection_type == "CAVALIER":
-                        r0 = pij
-                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                      -math.sqrt(2) / 2])
-                    elif projection_type == "OBLIQUE":
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                      -oblique_factor * math.sin(oblique_angle),
-                                      -oblique_factor])
-                    elif projection_type == "ORTHOGRAPHIC":
-                        r0 = pij
-                        d = np.array([0, 0, -1])
+                    if not oblique:
+                        r0 = np.array([0, 0, 0])
+                        d = pij
                     else:
-                        print("INVALID PROJECTION!")
-                        exit()
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                      -1])
+                        d = d / np.linalg.norm(d)
 
                     # getting face  intercepted and point of intersection of ray pij
                     p_int, intersected_face = self.get_intersection(r0, d)
@@ -364,32 +301,15 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
 
-                    r0 = np.array([0, 0, 0])
-                    d = pij
-
-                    if projection_type == "PERSPECTIVE":
-                        pass
-                    elif projection_type == "CABINET":
-                        r0 = pij
-                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
-                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                      -1 / math.sqrt(5) * 2])
-                    elif projection_type == "CAVALIER":
-                        r0 = pij
-                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                      -math.sqrt(2) / 2])
-                    elif projection_type == "OBLIQUE":
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                      -oblique_factor * math.sin(oblique_angle),
-                                      -oblique_factor])
-                    elif projection_type == "ORTHOGRAPHIC":
-                        r0 = pij
-                        d = np.array([0, 0, -1])
+                    if not oblique:
+                        r0 = np.array([0, 0, 0])
+                        d = pij
                     else:
-                        print("INVALID PROJECTION!")
-                        exit()
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                      -1])
+                        d = d / np.linalg.norm(d)
 
                     # getting face  intercepted and point of intersection of ray pij
                     p_int, intersected_face = self.get_intersection(r0, d)
@@ -407,32 +327,15 @@ class Scenario(object):
                     x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
                     pij = np.array([x_i, y_i, -window_distance])
 
-                    r0 = np.array([0, 0, 0])
-                    d = pij
-
-                    if projection_type == "PERSPECTIVE":
-                        pass
-                    elif projection_type == "CABINET":
-                        r0 = pij
-                        d = np.array([-1 / math.sqrt(5) * math.cos(oblique_angle),
-                                      -1 / math.sqrt(5) * math.sin(oblique_angle),
-                                      -1 / math.sqrt(5) * 2])
-                    elif projection_type == "CAVALIER":
-                        r0 = pij
-                        d = np.array([-math.sqrt(2) / 2 * math.cos(oblique_angle),
-                                      -math.sqrt(2) / 2 * math.sin(oblique_angle),
-                                      -math.sqrt(2) / 2])
-                    elif projection_type == "OBLIQUE":
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(oblique_angle),
-                                      -oblique_factor * math.sin(oblique_angle),
-                                      -oblique_factor])
-                    elif projection_type == "ORTHOGRAPHIC":
-                        r0 = pij
-                        d = np.array([0, 0, -1])
+                    if not oblique:
+                        r0 = np.array([0, 0, 0])
+                        d = pij
                     else:
-                        print("INVALID PROJECTION!")
-                        exit()
+                        r0 = pij
+                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
+                                      -1])
+                        d = d / np.linalg.norm(d)
 
                     # getting face  intercepted and point of intersection of ray pij
                     p_int, intersected_face = self.get_intersection(r0, d)
