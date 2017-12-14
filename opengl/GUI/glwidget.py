@@ -11,6 +11,7 @@ class GLWidget(QOpenGLWidget):
     def initializeGL(self):
         glClearColor(0,0,0,0)
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_NORMALIZE)
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
 
