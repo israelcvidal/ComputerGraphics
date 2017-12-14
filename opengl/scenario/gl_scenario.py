@@ -12,8 +12,8 @@ def draw_scenario():
 
     # MATERIALS
 
-    specular_term = [0.1, 0.1, 0.1]
-    m = 10
+    specular_term = [0.3, 0.3, 0.3]
+    m = 0.1
     # WALLS MATERIAL
     rgb_wall_material = [44 / 255, 137 / 255, 142 / 255]
     wall_material = obj.Material(rgb_wall_material, rgb_wall_material, specular_term, m)
@@ -33,7 +33,7 @@ def draw_scenario():
 
     #  BLACK MATERIAL
     rgb_black = [0, 0, 0]
-    black_material = obj.Material(rgb_black, rgb_black, specular_term, m)
+    black_material = obj.Material(rgb_black, rgb_black, specular_term, 5)
     black_cube = copy.deepcopy(cube)
     black_cube.apply_material(black_material)
 
@@ -343,12 +343,12 @@ def draw_scenario():
     draw_polygon(light_wood_cube)
     glPopMatrix()
 
-    # # PAREDE FRENTE
-    # glPushMatrix()
-    # glTranslatef(0, 0, 3.9)
-    # glScalef(3., 3., 0.1)
-    # draw_polygon(cube)
-    # glPopMatrix()
+    # PAREDE FRENTE
+    glPushMatrix()
+    glTranslatef(0, 0, 3.9)
+    glScalef(3., 3., 0.1)
+    draw_polygon(wall_cube)
+    glPopMatrix()
 
     # PAREDE ESQUERDA - LATERAL
     glPushMatrix()
