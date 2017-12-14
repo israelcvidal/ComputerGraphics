@@ -7,9 +7,9 @@ from ray_casting.scenario.scenario import *
 
 
 def main():
-    d = 0.5
-    window_height = 1
-    window_width = 1
+    d = 0.00001
+    window_height = 10
+    window_width = 10
     pixels_height = 300
     pixels_width = 300
 
@@ -23,7 +23,7 @@ def main():
 
     # T = mt.get_translation_matrix([1, 0, 2])
     cube2 = copy.deepcopy(cube)
-    cube2.apply_material(obj.Material([0, 0, 0], [0, 0, 0], [0, 0, 0], 1))
+    # cube2.apply_material(obj.Material([0, 0, 0], [0, 0, 0], [0, 0, 0], 1))
     # cube2.apply_transformation(T)
     objects.append(cube2)
 
@@ -32,7 +32,7 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [1.5, 1.5, 1.5, 1.0]
+    po = [2.5, 2.5, 2.5, 1.0]
     look_at = [1, 1, 1, 1.0]
     a_vup = [1, 2, 1, 1.0]
 
@@ -42,15 +42,15 @@ def main():
     cv = "CAVALIER"
     ort = "ORTHOGRAPHIC"
 
-    projection_type = p
+    projection_type = cv
 
     scenario = Scenario(objects=objects, light_sources=[],
-                        po=po, look_at=look_at, a_vup=a_vup, background_color=[1., 0., 0.],
-                        ambient_light=[0.5, 0.5, 0.5])
+                        po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
+                        ambient_light=[0.9, 0.9, 0.9])
 
     scenario.render(window_width, window_height, d, pixels_width, pixels_height,
-                    ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
-                    oblique_angle=0, oblique_factor=0)
+                    ray_mean=False, parallel=True, shadow=False, projection_type=projection_type,
+                    oblique_angle=45, oblique_factor=None)
 
 
 if __name__ == '__main__':
