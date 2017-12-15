@@ -458,6 +458,7 @@ class Scenario(object):
                 n_dot_pij = np.dot(normal, d[:3])
 
                 # backface culling:
+                # if t_limit==1 and n_dot_pij >= 0:
                 if n_dot_pij >= 0:
                     continue
 
@@ -535,11 +536,13 @@ class LightSource(object):
         """
         self.intensity = np.array(intensity)
         self.position = np.append(position, [1])
-        self.direction = np.array(direction)
+        if direction is not None:
+            self.direction = np.array(direction)/np.linalg.norm(direction)
+        else:
+            self.direction = None
 
     def get_l(self, p_int):
         return self.position[:3] - p_int
-        # return l / np.linalg.norm(l)
 
     def get_vectors(self, r0, face, p_int):
         """
@@ -620,7 +623,7 @@ class SpotLightSource(LightSource):
         k_e_rgb = face.material.k_e_rgb
 
         spot_intensity = self.direction.dot(-l)
-        if spot_intensity < math.cos(self.theta):
+        if spot_intensity < math.cos(math.radians(self.theta)):
             spot_intensity = 0
 
         diffuse_term = spot_intensity * n.dot(l)
@@ -647,7 +650,6 @@ class InfinityLightSource(LightSource):
 
     def get_l(self, p_int):
         return -self.direction
-        # return l / np.linalg.norm(l)
 
     def get_vectors(self, r0, face, p_int):
         """
