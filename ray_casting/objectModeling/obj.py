@@ -69,7 +69,12 @@ class Face(object):
         # v = (self.dot00 * dot12 - self.dot01 * dot02)
         # return u+v < self.det and u >= 0 and v >= 0
 
-
+    # def is_in_triangle(self, p):
+    #     n1 = np.cross((self.vertices[0].coordinates - p), (self.vertices[1].coordinates - p))
+    #     n2 = np.cross((self.vertices[1].coordinates - p), (self.vertices[2].coordinates - p))
+    #     n3 = np.cross((self.vertices[2].coordinates - p), (self.vertices[0].coordinates - p))
+    #
+    #     return np.dot(n1, self.normal[:3]) >= 0 and np.dot(n2, self.normal[:3]) >= 0 and np.dot(n3, self.normal[:3]) >= 0
 
 class Obj(object):
     def __init__(self):

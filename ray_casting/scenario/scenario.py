@@ -133,7 +133,7 @@ class Scenario(object):
         """
 
         :param window_width: width of window to open on the plane
-        :param window_height: height of window to open on the plane
+        :param window_height: height of windTrueow to open on the plane
         :param window_distance: distance of the plane where the window will be opened at
         :param pixels_width: number of pixels we will have on width direction
         :param pixels_height: number of pixels we will have on height direction
@@ -419,7 +419,7 @@ class Scenario(object):
             radius = max(dx, dy, dz)/2
 
             a = d.dot(d)
-            b = -2 * d.dot((r0-center))
+            b = -2 * d.dot(r0-center)
             c = (r0-center).dot(r0-center) - math.pow(radius, 2)
             if (math.pow(b, 2) - 4 * a * c) >= 0:
                 objects_not_cut.append(object_)
@@ -466,7 +466,7 @@ class Scenario(object):
 
                 t = np.dot(normal, (p1[:3]-r0)) / n_dot_pij
 
-                if t < t_limit or t > intersected_face[0]:
+                if t < t_limit or (t_limit == 1 and t > intersected_face[0]):
                     continue
 
                 if t_limit == 0 and t > 1:
