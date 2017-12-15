@@ -32,7 +32,7 @@ def main():
     cube2.apply_material(red_material)
     objects.append(cube2)
 
-    punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[50.5, 5, 48.5])
+    punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[50.5, 5, 50.5])
     # spot_light = SpotLightSource(intensity=[0.5, 0.5, 0.5], position=[49, 13, 49], direction=[0, -1, 0], theta=25)
 
     po = [50.5, 4, 60.5, 1.0]
