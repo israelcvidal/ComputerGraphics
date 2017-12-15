@@ -376,8 +376,10 @@ class Scenario(object):
 
             if shadow:
                 l_int, l_face = self.get_intersection(p_int, light_source.get_l(p_int), 0, intersected_face)
-                if l_int is not None and l_face != intersected_face:
+
+                if l_int is not None:
                     continue
+
                 else:
                     pij_rgb += light_source.get_total_intensity(r0, intersected_face, p_int)
             else:
@@ -481,6 +483,7 @@ class Scenario(object):
                     intersected_face = (t, face)
 
                 if t_limit == 0 and intersected_face[1] is not None and face_int != intersected_face:
+                # if t_limit == 0 and intersected_face[1] is not None:
                     break
 
         if intersected_face[1] is not None:

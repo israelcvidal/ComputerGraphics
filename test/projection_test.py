@@ -32,9 +32,9 @@ def main():
     #                              direction=[0.5, 0.5, 0.5], theta=20.0)
     # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
 
-    po = [2.5, 2.5, 2.5, 1.0]
-    look_at = [1, 1, 1, 1.0]
-    a_vup = [1, 2, 1, 1.0]
+    po = [0.5, 0.5, 2.5, 1.0]
+    look_at = [0.5, 0.5, 0.5, 1.0]
+    a_vup = [0.5, 2, 0.5, 1.0]
 
     p = "PERSPECTIVE"
     ob = "OBLIQUE"
@@ -42,7 +42,7 @@ def main():
     cv = "CAVALIER"
     ort = "ORTHOGRAPHIC"
 
-    projection_type = cv
+    projection_type = cb
 
     scenario = Scenario(objects=objects, light_sources=[],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
