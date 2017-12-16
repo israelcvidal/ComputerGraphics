@@ -271,7 +271,7 @@ class Scenario(object):
         n = face.normal[:3]
 
         n_dot_d = np.dot(n, d[:3])
-        if n_dot_d > 0:
+        if n_dot_d >= 0:
             return -1
 
         return n.dot(p1-r0)/n_dot_d
