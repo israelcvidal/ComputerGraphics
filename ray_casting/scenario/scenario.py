@@ -25,17 +25,24 @@ class Scenario(object):
         self.a_vup = a_vup
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
+        self.projection_type_to_oblique_factor = {"CAVALIER": 1, "CABINET": 0.5}
 
     def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True,
-                    shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
+                    shadow=False, projection_type="PERSPECTIVE", oblique_angle=0.0, oblique_factor=0.0):
         """
         :param window_width: width of window to open on the plane
         :param window_height: height of window to open on the plane
         :param window_distance: distance of the plane where the window will be opened at
         :param pixels_width: number of pixels we will have on width direction
         :param pixels_height: number of pixels we will have on height direction
+        :param parallel: if true, run loop in parallel
+        :param shadow: if true, render ray casting with shadow
+        :param projection_type: choose between PERSPECTIVE, OBLIQUE, CAVALIER OR CABINET
+        :param oblique_angle: angle of projection oblique
+        :param oblique_factor: size of projection compared to real object
         :return: matrix rgb to be rendered
         """
+
         print("Starting ray_casting()...")
         start = time.time()
 
@@ -86,9 +93,7 @@ class Scenario(object):
                                           -1])
                             d = d / np.linalg.norm(d)
 
-                        # getting face  intercepted and point of intersection of ray pij
                         p_int, intersected_face = self.get_intersection(r0, d)
-                        # if intercept any point
                         if p_int is None:
                             p[i][j] = self.background_color
                         else:
@@ -113,10 +118,8 @@ class Scenario(object):
                                       -1])
                         d = d / np.linalg.norm(d)
 
-                    # getting face  intercepted and point of intersection of ray pij
                     p_int, intersected_face = self.get_intersection(r0, d)
 
-                    # if intercept any point
                     if p_int is None:
                         p[i][j] = self.background_color
                     else:
@@ -129,16 +132,21 @@ class Scenario(object):
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
     def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,
-                         parallel=True, shadow=False, projection_type="CABINET", oblique_angle=45.0, oblique_factor=1.0):
+                         parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=45.0, oblique_factor=1.0):
         """
-
         :param window_width: width of window to open on the plane
-        :param window_height: height of windTrueow to open on the plane
+        :param window_height: height of window to open on the plane
         :param window_distance: distance of the plane where the window will be opened at
         :param pixels_width: number of pixels we will have on width direction
         :param pixels_height: number of pixels we will have on height direction
+        :param parallel: if true, run loop in parallel
+        :param shadow: if true, render ray casting with shadow
+        :param projection_type: choose between PERSPECTIVE, OBLIQUE, CAVALIER OR CABINET
+        :param oblique_angle: angle of projection oblique
+        :param oblique_factor: size of projection compared to real object
         :return: matrix rgb to be rendered
         """
+
         print("Starting ray_casting_mean()...")
         start = time.time()
 
@@ -369,9 +377,11 @@ class Scenario(object):
     def determine_color(self, r0, p_int, intersected_face, shadow=True):
         """
         Return the RGB color for the pixel ij
+        :param r0: origin of ray
         :param p_int: point intersected
         :param intersected_face: face intersected by the ray
-        :return:
+        :param shadow: if True, consider shadow in calculation
+        :return: pij rgb
         """
         pij_rgb = intersected_face.material.k_a_rgb * self.ambient_light
         for light_source in self.light_sources:
@@ -396,8 +406,9 @@ class Scenario(object):
     def objects_culling(self, r0, d):
         """
         Return objects that the ray intersects with their have intersection sphere(aura)
-        :param pij: point corresponding to a pixel ij
-        :return:
+        :param r0: origin of ray
+        :param d: direction of ray
+        :return: objects not cut to check intersection
         """
 
         objects_not_cut = []
@@ -439,7 +450,12 @@ class Scenario(object):
     def get_intersected_face(self, objects, r0, d, t_limit=1, face_int=None):
         """
         Returns witch faces have intersection with the ray and their point of intersection(t).
-        :param pij: point where the ray starts
+        :param objects: objects to check intersection with
+        :param r0: origin of ray
+        :param d: direction of ray
+        :param t_limit: 1 if ray is from ray casting, 0 if is ray from light(shadow)
+        :param face_int: when using ray from light to calculate shadow,
+                face_int is the face where happened the intersection with ray from ray casting
         :return: point of intersection with the closest face and the face intersected
         """
         t_min = float('inf')
@@ -518,6 +534,7 @@ class LightSource(object):
     def get_vectors(self, r0, face, p_int):
         """
         Return the unitary vectors n, l, u and r
+        :param r0: origin of ray
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
@@ -537,6 +554,7 @@ class LightSource(object):
     def get_total_intensity(self, r0, face, p_int):
         """
         Return the sum of the diffuse and specular term
+        :param r0: origin of ray
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
@@ -563,7 +581,6 @@ class PunctualLightSource(LightSource):
     def __init__(self, intensity, position):
         """
         :param intensity: light source intensity, between 0 and 1
-        :param attenuation: light attenuation for the specular reflection
         :param position: position x,y,z of the light source
         """
         super().__init__(intensity, position, None)
@@ -573,7 +590,6 @@ class SpotLightSource(LightSource):
     def __init__(self, intensity, position, direction, theta):
         """
         :param intensity: light source intensity, between 0 and 1
-        :param attenuation: light attenuation for the specular reflection
         :param position: position x,y,z of the light source
         :param direction: direction vector of the light
         :param theta: limit angle at which light from source can be seen
@@ -614,7 +630,6 @@ class InfinityLightSource(LightSource):
     def __init__(self, intensity, direction):
         """
         :param intensity: light source intensity, between 0 and 1
-        :param attenuation: light attenuation for the specular reflection
         :param direction: direction vector of the light
         """
         super().__init__(intensity=intensity, position=None, direction=direction)
@@ -625,6 +640,7 @@ class InfinityLightSource(LightSource):
     def get_vectors(self, r0, face, p_int):
         """
         Return the unitary vectors n, l, u and r
+        :param r0: origin of ray
         :param face: face intersected by the ray
         :param p_int: point intersected
         :return:
