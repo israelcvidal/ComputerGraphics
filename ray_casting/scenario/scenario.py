@@ -7,6 +7,14 @@ import numpy as np
 from ray_casting.transformations import world_camera_transformations as wct
 
 
+class Window(object):
+    def __init__(self, width, height, distance, pixels_width, pixels_height):
+        self.width = width
+        self.height = height
+        self.distance = distance
+        self.pixels_width = pixels_width
+        self.pixels_height = pixels_height
+
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
                  a_vup=None, background_color=[0.0, 0.0, 0.0], ambient_light=[1.0, 1.0, 1.0]):
@@ -27,14 +35,11 @@ class Scenario(object):
         self.ambient_light = np.array(ambient_light)
         self.projection_type_to_oblique_factor = {"CAVALIER": 1, "CABINET": 0.5}
 
-    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True,
+    def ray_casting(self, window, parallel=True,
                     shadow=False, projection_type="PERSPECTIVE", oblique_angle=0.0, oblique_factor=0.0):
         """
-        :param window_width: width of window to open on the plane
-        :param window_height: height of window to open on the plane
-        :param window_distance: distance of the plane where the window will be opened at
-        :param pixels_width: number of pixels we will have on width direction
-        :param pixels_height: number of pixels we will have on height direction
+        :param window: object containing width, height, and distance of window to open on the plane.
+                Contains also number of pixels in w and h.
         :param parallel: if true, run loop in parallel
         :param shadow: if true, render ray casting with shadow
         :param projection_type: choose between PERSPECTIVE, OBLIQUE, CAVALIER OR CABINET
@@ -46,8 +51,8 @@ class Scenario(object):
         print("Starting ray_casting()...")
         start = time.time()
 
-        delta_x = window_width / pixels_width
-        delta_y = window_height / pixels_height
+        delta_x = window.width / window.pixels_width
+        delta_y = window.height / window.pixels_height
         # transforming all objects to camera
         self.transform_to_camera()
 
@@ -73,15 +78,15 @@ class Scenario(object):
         if parallel:
             import pymp
             # p = matrix of points corresponding to each pixel
-            p = pymp.shared.array((pixels_width, pixels_height, 3))
+            p = pymp.shared.array((window.pixels_width, window.pixels_height, 3))
 
             pymp.config.nested = True
             with pymp.Parallel(4) as p1:
-                for i in p1.range(pixels_height):
-                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                    for j in range(pixels_width):
-                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window_distance])
+                for i in p1.range(window.pixels_height):
+                    y_i = (window.height / 2) - (delta_y / 2) - (i * delta_y)
+                    for j in range(window.pixels_width):
+                        x_i = (-window.width / 2) + (delta_x / 2) + (j * delta_x)
+                        pij = np.array([x_i, y_i, -window.distance])
 
                         if not oblique:
                             r0 = np.array([0, 0, 0])
@@ -100,13 +105,13 @@ class Scenario(object):
                             p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
         else:
             # p = matrix of points corresponding to each pixel
-            p = np.ones((pixels_width, pixels_height, 3))
+            p = np.ones((window.pixels_width, window.pixels_height, 3))
 
-            for i in range(pixels_height):
-                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                for j in range(pixels_width):
-                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window_distance])
+            for i in range(window.pixels_height):
+                y_i = (window.height / 2) - (delta_y / 2) - (i * delta_y)
+                for j in range(window.pixels_width):
+                    x_i = (-window.width / 2) + (delta_x / 2) + (j * delta_x)
+                    pij = np.array([x_i, y_i, -window.distance])
 
                     if not oblique:
                         r0 = np.array([0, 0, 0])
@@ -131,14 +136,10 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,
-                         parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=45.0, oblique_factor=1.0):
+    def ray_casting_mean(self,window, parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=45.0, oblique_factor=1.0):
         """
-        :param window_width: width of window to open on the plane
-        :param window_height: height of window to open on the plane
-        :param window_distance: distance of the plane where the window will be opened at
-        :param pixels_width: number of pixels we will have on width direction
-        :param pixels_height: number of pixels we will have on height direction
+        :param window: object containing width, height, and distance of window to open on the plane.
+                Contains also number of pixels in w and h.
         :param parallel: if true, run loop in parallel
         :param shadow: if true, render ray casting with shadow
         :param projection_type: choose between PERSPECTIVE, OBLIQUE, CAVALIER OR CABINET
@@ -149,6 +150,12 @@ class Scenario(object):
 
         print("Starting ray_casting_mean()...")
         start = time.time()
+
+        window_width = window.width
+        window_height = window.height
+        window_distance = window.distance
+        pixels_width = window.pixels_width
+        pixels_height = window.pixels_height
 
         delta_x = window_width / pixels_width
         delta_y = window_height / pixels_height
@@ -502,15 +509,13 @@ class Scenario(object):
         for light_source in self.light_sources:
             light_source.position = cw_matrix.dot(light_source.position)
 
-    def render(self, window_width, window_height, window_distance, pixels_width, pixels_height, ray_mean=True,
+    def render(self, window, ray_mean=True,
                parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None):
 
-        param_list = [window_width, window_height, window_distance, pixels_width, pixels_height]
-        param_dict = {"parallel": parallel, "shadow": shadow, "projection_type": projection_type,
+        param_dict = {"window": window, "parallel": parallel, "shadow": shadow, "projection_type": projection_type,
                       "oblique_angle": oblique_angle, "oblique_factor": oblique_factor}
 
-        scenario = self.ray_casting_mean(*param_list, **param_dict) if ray_mean else\
-            self.ray_casting(*param_list, **param_dict)
+        scenario = self.ray_casting_mean(**param_dict) if ray_mean else self.ray_casting(**param_dict)
 
         plt.imshow(scenario)
         plt.show()
