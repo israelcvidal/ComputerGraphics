@@ -1,6 +1,5 @@
 import math
 import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -14,6 +13,14 @@ class Window(object):
         self.distance = distance
         self.pixels_width = pixels_width
         self.pixels_height = pixels_height
+        self.delta_x = width / pixels_width
+        self.delta_y = height / pixels_height
+
+    def get_pij(self, i, j):
+        y_i = (self.height - self.delta_y) / 2 - (i * self.delta_y)
+        x_i = (-self.width + self.delta_x) / 2 + (j * self.delta_x)
+        return np.array([x_i, y_i, -self.distance])
+
 
 class Scenario(object):
     def __init__(self, objects=[], light_sources=[], po=None, look_at=None,
@@ -33,10 +40,34 @@ class Scenario(object):
         self.a_vup = a_vup
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
-        self.projection_type_to_oblique_factor = {"CAVALIER": 1, "CABINET": 0.5}
 
-    def ray_casting(self, window, parallel=True,
-                    shadow=False, projection_type="PERSPECTIVE", oblique_angle=0.0, oblique_factor=0.0):
+    def render(self, window, ray_mean=True, parallel=True, shadow=False, projection_type="PERSPECTIVE",
+               oblique_angle=None, oblique_factor=None):
+
+        params = {'parallel': parallel, 'shadow': shadow, 'projection_type': projection_type,
+                  'oblique_angle': oblique_angle, 'oblique_factor': oblique_factor}
+
+        scenario = self.ray_casting_mean(window, **params) if ray_mean else self.ray_casting(window, **params)
+
+        plt.imshow(scenario)
+        plt.show()
+
+    def get_oblique_options(self, projection_type, oblique_factor):
+        projections = {
+            'PERSPECTIVE': (False, oblique_factor),
+            'CABINET': (True, .5),
+            'CAVALIER': (True, 1.),
+            'OBLIQUE': (True, oblique_factor),
+            'ORTHOGRAPHIC': (True, 0.)
+        }
+        if projection_type not in projections:
+            print("INVALID PROJECTION!")
+            exit()
+        else:
+            return projections[projection_type]
+
+    def ray_casting(self, window, parallel=True, shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
+
         """
         :param window: object containing width, height, and distance of window to open on the plane.
                 Contains also number of pixels in w and h.
@@ -51,84 +82,27 @@ class Scenario(object):
         print("Starting ray_casting()...")
         start = time.time()
 
-        delta_x = window.width / window.pixels_width
-        delta_y = window.height / window.pixels_height
-        # transforming all objects to camera
         self.transform_to_camera()
 
-        oblique = False
-        if projection_type == "PERSPECTIVE":
-            pass
-        elif projection_type == "CABINET":
-            oblique = True
-            oblique_factor = 1/2
-        elif projection_type == "CAVALIER":
-            oblique = True
-            oblique_factor = 1
-        elif projection_type == "OBLIQUE":
-            oblique = True
-            pass
-        elif projection_type == "ORTHOGRAPHIC":
-            oblique = True
-            oblique_factor = 0
-        else:
-            print("INVALID PROJECTION!")
-            exit()
+        oblique, oblique_factor = self.get_oblique_options(projection_type, oblique_factor)
 
         if parallel:
             import pymp
-            # p = matrix of points corresponding to each pixel
+            pymp.config.nested = True
             p = pymp.shared.array((window.pixels_width, window.pixels_height, 3))
 
-            pymp.config.nested = True
             with pymp.Parallel(4) as p1:
                 for i in p1.range(window.pixels_height):
-                    y_i = (window.height / 2) - (delta_y / 2) - (i * delta_y)
                     for j in range(window.pixels_width):
-                        x_i = (-window.width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window.distance])
-
-                        if not oblique:
-                            r0 = np.array([0, 0, 0])
-                            d = pij
-                        else:
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                          -1])
-                            d = d / np.linalg.norm(d)
-
-                        p_int, intersected_face = self.get_intersection(r0, d)
-                        if p_int is None:
-                            p[i][j] = self.background_color
-                        else:
-                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
+                        p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor,
+                                                          oblique_angle)
         else:
-            # p = matrix of points corresponding to each pixel
             p = np.ones((window.pixels_width, window.pixels_height, 3))
-
             for i in range(window.pixels_height):
-                y_i = (window.height / 2) - (delta_y / 2) - (i * delta_y)
                 for j in range(window.pixels_width):
-                    x_i = (-window.width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window.distance])
+                    p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor,
+                                                      oblique_angle)
 
-                    if not oblique:
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-                    else:
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                      -1])
-                        d = d / np.linalg.norm(d)
-
-                    p_int, intersected_face = self.get_intersection(r0, d)
-
-                    if p_int is None:
-                        p[i][j] = self.background_color
-                    else:
-                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
 
         end = time.time()
@@ -136,7 +110,7 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self,window, parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=45.0, oblique_factor=1.0):
+    def ray_casting_mean(self, window, parallel=True, shadow=False, projection_type="CABINET", oblique_angle=45.0, oblique_factor=1.0):
         """
         :param window: object containing width, height, and distance of window to open on the plane.
                 Contains also number of pixels in w and h.
@@ -151,227 +125,76 @@ class Scenario(object):
         print("Starting ray_casting_mean()...")
         start = time.time()
 
-        window_width = window.width
-        window_height = window.height
-        window_distance = window.distance
-        pixels_width = window.pixels_width
-        pixels_height = window.pixels_height
-
-        delta_x = window_width / pixels_width
-        delta_y = window_height / pixels_height
-        # transforming all objects to camera
         self.transform_to_camera()
 
-        oblique = False
-        if projection_type == "PERSPECTIVE":
-            pass
-        elif projection_type == "CABINET":
-            oblique = True
-            oblique_factor = 1 / 2
-        elif projection_type == "CAVALIER":
-            oblique = True
-            oblique_factor = 1
-        elif projection_type == "OBLIQUE":
-            oblique = True
-            pass
-        elif projection_type == "ORTHOGRAPHIC":
-            oblique = True
-            oblique_factor = 0
-        else:
-            print("INVALID PROJECTION!")
-            exit()
+        oblique, oblique_factor = self.get_oblique_options(projection_type, oblique_factor)
 
         if parallel:
             import pymp
-            # p = matrix of points corresponding to each pixel
-            p = pymp.shared.array((pixels_height, pixels_width, 3))
             pymp.config.nested = True
+            p = pymp.shared.array((window.pixels_width, window.pixels_height, 3))
 
-            # Borders
             with pymp.Parallel(4) as p1:
+
                 # First and last column:
-                for i in p1.range(pixels_height):
-                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                    for j in [0, pixels_width-1]:
-                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window_distance])
-
-                        if not oblique:
-                            r0 = np.array([0, 0, 0])
-                            d = pij
-                        else:
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                          -1])
-                            d = d / np.linalg.norm(d)
-
-                        # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(r0, d)
-                        # if intercept any point
-                        if p_int is None:
-                            p[i][j] = self.background_color
-                        else:
-                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
+                for i in p1.range(window.pixels_height):
+                    for j in [0, window.pixels_width - 1]:
+                        p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor,
+                                                          oblique_angle)
 
                 # First and last line:
-                for i in [0, pixels_height-1]:
-                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                    for j in p1.range(pixels_width):
-                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window_distance])
-
-                        if not oblique:
-                            r0 = np.array([0, 0, 0])
-                            d = pij
-                        else:
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                          -1])
-                            d = d / np.linalg.norm(d)
-
-                        # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(r0, d)
-
-                        # if intercept any point
-                        if p_int is None:
-                            # print(i, j)
-                            p[i][j] = self.background_color
-                        else:
-                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
+                for i in [0, window.pixels_height - 1]:
+                    for j in p1.range(window.pixels_width):
+                        p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor,
+                                                          oblique_angle)
 
                 # Alternating pixels
-                for i in p1.range(pixels_height):
-                    y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                    for j in range(1 + (i % 2), pixels_width, 2):
-                        x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                        pij = np.array([x_i, y_i, -window_distance])
+                for i in p1.range(window.pixels_height):
+                    for j in range(1 + (i % 2), window.pixels_width, 2):
+                        p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor,
+                                                          oblique_angle)
 
-                        if not oblique:
-                            r0 = np.array([0, 0, 0])
-                            d = pij
+                for i in range(0, window.pixels_height - 1):
+                    for j in range(2 - (i % 2), window.pixels_width - 1, 2):
+                        mean1 = (p[i - 1][j] + p[i + 1][j]) / 2
+                        mean2 = (p[i][j - 1] + p[i][j + 1]) / 2
+                        diff1 = np.linalg.norm(p[i + 1][j] - p[i - 1][j])
+                        diff2 = np.linalg.norm(p[i][j + 1] - p[i][j - 1])
+                        if diff1 + diff2 != 0:
+                            mean = (mean1 * diff2 + mean2 * diff1) / (diff1 + diff2)
                         else:
-                            r0 = pij
-                            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                          -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                          -1])
-                            d = d / np.linalg.norm(d)
+                            mean = mean1
 
-                        # getting face  intercepted and point of intersection of ray pij
-                        p_int, intersected_face = self.get_intersection(r0, d)
-
-                        # if intercept any point
-                        if p_int is None:
-                            # print(i, j)
-                            p[i][j] = self.background_color
-                        else:
-                            p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
-
-            for i in range(0, pixels_height-1):
-                for j in range(2 - (i % 2), pixels_width-1, 2):
-                    mean1 = (p[i-1][j] + p[i+1][j])/2
-                    mean2 = (p[i][j-1] + p[i][j+1])/2
-                    diff1 = np.linalg.norm(p[i + 1][j] - p[i - 1][j])
-                    diff2 = np.linalg.norm(p[i][j + 1] - p[i][j - 1])
-                    if diff1 + diff2 != 0:
-                        mean = (mean1*diff2 + mean2*diff1)/(diff1+diff2)
-                    else:
-                        mean = mean1
-
-                    p[i][j] = mean
+                        p[i][j] = mean
         else:
-            # p = matrix of points corresponding to each pixel
-            p = np.ones((pixels_width, pixels_height, 3))
+            p = np.ones((window.pixels_width, window.pixels_height, 3))
 
-            # Borders
             # First and last column:
-            for i in range(pixels_height):
-                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                for j in [0, pixels_width - 1]:
-                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window_distance])
-
-                    if not oblique:
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-                    else:
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                      -1])
-                        d = d / np.linalg.norm(d)
-
-                    # getting face  intercepted and point of intersection of ray pij
-                    p_int, intersected_face = self.get_intersection(r0, d)
-                    # if intercept any point
-                    if p_int is None:
-                        # print(i, j)
-                        p[i][j] = self.background_color
-                    else:
-                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
+            for i in range(window.pixels_height):
+                for j in [0, window.pixels_width - 1]:
+                    p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor, oblique_angle)
 
             # First and last line:
-            for i in [0, pixels_height - 1]:
-                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                for j in range(pixels_width):
-                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window_distance])
+            for i in [0, window.pixels_height - 1]:
+                for j in range(window.pixels_width):
+                    p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor, oblique_angle)
 
-                    if not oblique:
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-                    else:
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                      -1])
-                        d = d / np.linalg.norm(d)
+                    # Alternating pixels
+            for i in range(window.pixels_height):
+                for j in range(1 + (i % 2), window.pixels_width, 2):
+                    p[i][j] = self.cast_ray_for_pixel(window.get_pij(i, j), shadow, oblique, oblique_factor, oblique_angle)
 
-                    # getting face  intercepted and point of intersection of ray pij
-                    p_int, intersected_face = self.get_intersection(r0, d)
-                    # if intercept any point
-                    if p_int is None:
-                        # print(i, j)
-                        p[i][j] = self.background_color
-                    else:
-                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
-
-            # Alternating pixels
-            for i in range(pixels_height):
-                y_i = (window_height / 2) - (delta_y / 2) - (i * delta_y)
-                for j in range(1 + i % 2, pixels_width, 2):
-                    x_i = (-window_width / 2) + (delta_x / 2) + (j * delta_x)
-                    pij = np.array([x_i, y_i, -window_distance])
-
-                    if not oblique:
-                        r0 = np.array([0, 0, 0])
-                        d = pij
-                    else:
-                        r0 = pij
-                        d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
-                                      -oblique_factor * math.sin(math.radians(oblique_angle)),
-                                      -1])
-                        d = d / np.linalg.norm(d)
-
-                    # getting face  intercepted and point of intersection of ray pij
-                    p_int, intersected_face = self.get_intersection(r0, d)
-                    # if intercept any point
-                    if p_int is None:
-                        p[i][j] = self.background_color
-                    else:
-                        p[i][j] = self.determine_color(r0, p_int, intersected_face, shadow)
-
-            for i in range(0, pixels_height-1):
-                for j in range(2 - (i % 2), pixels_width-1, 2):
-                    mean1 = (p[i-1][j] + p[i+1][j])/2
-                    mean2 = (p[i][j-1] + p[i][j+1])/2
+            for i in range(0, window.pixels_height - 1):
+                for j in range(2 - (i % 2), window.pixels_width - 1, 2):
+                    mean1 = (p[i - 1][j] + p[i + 1][j]) / 2
+                    mean2 = (p[i][j - 1] + p[i][j + 1]) / 2
                     diff1 = np.linalg.norm(p[i + 1][j] - p[i - 1][j])
                     diff2 = np.linalg.norm(p[i][j + 1] - p[i][j - 1])
                     if diff1 + diff2 != 0:
-                        mean = (mean1*diff2 + mean2*diff1)/(diff1+diff2)
+                        mean = (mean1 * diff2 + mean2 * diff1) / (diff1 + diff2)
                     else:
                         mean = mean1
+
                     p[i][j] = mean
 
         max_rgb = np.amax(np.amax(p, axis=0), axis=0)
@@ -379,7 +202,22 @@ class Scenario(object):
         end = time.time()
         print("Done in: ", end - start)
 
-        return p/[max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
+        return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
+
+    def cast_ray_for_pixel(self, pij, shadow, oblique=False, oblique_factor=0., oblique_angle=0.):
+        if oblique:
+            r0 = pij
+            d = np.array([-oblique_factor * math.cos(math.radians(oblique_angle)),
+                          -oblique_factor * math.sin(math.radians(oblique_angle)),
+                          -1])
+            d /= np.linalg.norm(d)
+        else:
+            r0 = np.zeros(3)
+            d = pij
+
+        p_int, intersected_face = self.get_intersection(r0, d)
+
+        return self.background_color if p_int is None else self.determine_color(r0, p_int, intersected_face, shadow)
 
     def determine_color(self, r0, p_int, intersected_face, shadow=True):
         """
@@ -410,39 +248,23 @@ class Scenario(object):
         objects_not_cut = self.objects_culling(r0, d)
         return self.get_intersected_face(objects_not_cut, r0, d, t_limit, face_int)
 
+    def ray_touches_object(self, obj, r0, d):
+        c = obj.center
+        r = obj.radius
+
+        a = d.dot(d)
+        b = -2 * d.dot(r0 - c)
+        c = (r0 - c).dot(r0 - c) - r ** 2
+
+        return b ** 2 - 4 * a * c >= 0
+
     def objects_culling(self, r0, d):
         """
         Return objects that the ray intersects with their have intersection sphere(aura)
-        :param r0: origin of ray
-        :param d: direction of ray
-        :return: objects not cut to check intersection
+        :param pij: point corresponding to a pixel ij
+        :return:
         """
-
-        objects_not_cut = []
-
-        for object_ in self.objects:
-            vertices = np.array([vertex.coordinates for vertex in object_.vertices])
-            min_x = min(vertices[:, 0])
-            max_x = max(vertices[:, 0])
-            min_y = min(vertices[:, 1])
-            max_y = max(vertices[:, 1])
-            min_z = min(vertices[:, 2])
-            max_z = max(vertices[:, 2])
-
-            center = np.array([(max_x + min_x)/2, (max_y + min_y)/2, (max_z + min_z)/2])
-            dx = abs(max_x) + abs(min_x)
-            dy = abs(max_y) + abs(min_y)
-            dz = abs(max_z) + abs(min_z)
-
-            radius = max(dx, dy, dz)/2
-
-            a = d.dot(d)
-            b = -2 * d.dot(r0-center)
-            c = (r0-center).dot(r0-center) - math.pow(radius, 2)
-            if (math.pow(b, 2) - 4 * a * c) >= 0:
-                objects_not_cut.append(object_)
-
-        return objects_not_cut
+        return [obj for obj in self.objects if self.ray_touches_object(obj, r0, d)]
 
     def find_t(self, face, r0, d):
         p1 = face.vertices[0].coordinates[:3]
@@ -508,17 +330,6 @@ class Scenario(object):
 
         for light_source in self.light_sources:
             light_source.position = cw_matrix.dot(light_source.position)
-
-    def render(self, window, ray_mean=True,
-               parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None):
-
-        param_dict = {"window": window, "parallel": parallel, "shadow": shadow, "projection_type": projection_type,
-                      "oblique_angle": oblique_angle, "oblique_factor": oblique_factor}
-
-        scenario = self.ray_casting_mean(**param_dict) if ray_mean else self.ray_casting(**param_dict)
-
-        plt.imshow(scenario)
-        plt.show()
 
 
 class LightSource(object):

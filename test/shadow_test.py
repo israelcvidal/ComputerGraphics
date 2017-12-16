@@ -44,9 +44,8 @@ def main():
                         ambient_light=[0.5, 0.5, 0.5])
 
     window = Window(window_width, window_height, d, pixels_width, pixels_height)
-    scenario.render(window=window, ray_mean=False, parallel=True, shadow=True, projection_type="PERSPECTIVE",
-                    oblique_angle=None, oblique_factor=None)
 
+    scenario.render(window, ray_mean=False, parallel=False, shadow=True, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None)
 
 if __name__ == '__main__':
     main()
