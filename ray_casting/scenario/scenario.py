@@ -26,7 +26,8 @@ class Scenario(object):
         self.background_color = background_color
         self.ambient_light = np.array(ambient_light)
 
-    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
+    def ray_casting(self, window_width, window_height, window_distance, pixels_width, pixels_height, parallel=True,
+                    shadow=False, projection_type="CABINET", oblique_angle=0.0, oblique_factor=0.0):
         """
         :param window_width: width of window to open on the plane
         :param window_height: height of window to open on the plane
@@ -127,11 +128,12 @@ class Scenario(object):
 
         return p / [max(1, max_rgb[0]), max(1, max_rgb[1]), max(1, max_rgb[2])]
 
-    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,  parallel=True, shadow=False, projection_type="CABINET", oblique_angle=45.0, oblique_factor=1.0):
+    def ray_casting_mean(self, window_width, window_height, window_distance, pixels_width, pixels_height,
+                         parallel=True, shadow=False, projection_type="CABINET", oblique_angle=45.0, oblique_factor=1.0):
         """
 
         :param window_width: width of window to open on the plane
-        :param window_height: height of window to open on the plane
+        :param window_height: height of windTrueow to open on the plane
         :param window_distance: distance of the plane where the window will be opened at
         :param pixels_width: number of pixels we will have on width direction
         :param pixels_height: number of pixels we will have on height direction
@@ -417,7 +419,7 @@ class Scenario(object):
             radius = max(dx, dy, dz)/2
 
             a = d.dot(d)
-            b = -2 * d.dot((r0-center))
+            b = -2 * d.dot(r0-center)
             c = (r0-center).dot(r0-center) - math.pow(radius, 2)
             if (math.pow(b, 2) - 4 * a * c) >= 0:
                 objects_not_cut.append(object_)
