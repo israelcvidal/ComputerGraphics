@@ -28,8 +28,6 @@ class Face(object):
         self.dot01 = None
         self.dot11 = None
         self.det = None
-        self.center = None
-        self.max_distance = None
 
     def calculate_normal(self):
         p1, p2, p3 = self.vertices
@@ -47,12 +45,6 @@ class Face(object):
         self.dot11 = np.dot(self.v1, self.v1)
         self.det = self.dot00 * self.dot11 - self.dot01 * self.dot01
 
-        # calculating center of face and max distance for optimization
-        # self.center = (p1.coordinates + p2.coordinates + p3.coordinates)/3
-        # self.max_distance = max(euclidean(self.center, p1.coordinates),
-        #                         euclidean(self.center, p2.coordinates),
-        #                         euclidean(self.center, p3.coordinates))
-
     def is_in_triangle(self, p):
         v2 = p - self.vertices[0].coordinates[:3]
         dot02 = np.dot(self.v0, v2)
@@ -65,17 +57,13 @@ class Face(object):
 
         return 0 <= u <= 1 and 0 <= v <= 1 and 0 <= w <= 1
 
-        # u = (self.dot11 * dot02 - self.dot01 * dot12)
-        # v = (self.dot00 * dot12 - self.dot01 * dot02)
-        # return u+v < self.det and u >= 0 and v >= 0
-
-
 
 class Obj(object):
     def __init__(self):
         self.vertices = []
         self.faces = []
-        self.faces_to_camera = []
+        self.center = None
+        self.radius = None
 
     def add_vertex(self, x, y, z):
         """
@@ -109,13 +97,13 @@ class Obj(object):
         return face
 
     def calculate_normals(self):
+        vertices = np.array([vertex.coordinates for vertex in self.vertices])
+
+        self.center = np.mean(vertices, axis=0)
+        self.radius = np.max(np.linalg.norm(vertices - self.center, axis=1))
+
         for face in self.faces:
             face.calculate_normal()
-            # if normal.dot(p1) > 0, face's normal is in the same direction as camera's normal,
-            # so we will not compute it
-
-            if face.normal[:3].dot(self.vertices[0].coordinates) < 0:
-                self.faces_to_camera.append(face)
 
     def apply_transformation(self, M):
         for vertex in self.vertices:

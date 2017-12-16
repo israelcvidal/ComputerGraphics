@@ -424,23 +424,15 @@ class Scenario(object):
 
         return objects_not_cut
 
-    # def back_face_culling(self, objects, pij):
-    #     """
-    #     Return list of faces from objects that might have intersection with the ray
-    #     :param objects:
-    #     :param pij:
-    #     :return:
-    #     """
-    #     faces_not_cut = []
-    #
-    #     pij_u = pij / np.linalg.norm(pij)
-    #     pij_u = np.append(pij_u, [1])
-    #     for object_ in objects:
-    #         for face in object_.faces:
-    #             if pij_u.dot(face.normal) < 0:
-    #                 faces_not_cut.append(face)
-    #
-    #     return faces_not_cut
+    def find_t(self, face, r0, d):
+        p1 = face.vertices[0].coordinates[:3]
+        n = face.normal[:3]
+
+        n_dot_d = np.dot(n, d[:3])
+        if n_dot_d > 0:
+            return -1
+
+        return n.dot(p1-r0)/n_dot_d
 
     def get_intersected_face(self, objects, r0, d, t_limit=1, face_int=None):
         """
@@ -448,48 +440,27 @@ class Scenario(object):
         :param pij: point where the ray starts
         :return: point of intersection with the closest face and the face intersected
         """
-        intersected_face = (float('inf'), None)
+        t_min = float('inf')
+        intersected_face = (None, None)
 
         for object_ in objects:
-            for face in object_.faces_to_camera:
-                p1 = face.vertices[0].coordinates[:3]
-                normal = face.normal[:3]
+            for face in [f for f in object_.faces if f is not face_int]:
+                t = self.find_t(face, r0, d)
 
-                n_dot_pij = np.dot(normal, d[:3])
-
-                # backface culling:
-                # if t_limit==1 and n_dot_pij >= 0:
-                if n_dot_pij >= 0:
-                    continue
-
-                t = np.dot(normal, (p1[:3]-r0)) / n_dot_pij
-
-                if t < t_limit or t > intersected_face[0]:
-                    continue
-
-                if t_limit == 0 and t > 1:
+                if t < t_limit or (t_limit == 1 and t > t_min) or (t_limit == 0 and t > 1):
                     continue
 
                 # ray and plane intersection point
                 p = r0 + (t * d)
 
-                # if the distance of this point to the center of the triangle is
-                # greater than the max distance of a point in that triangle, than its not a valid intersection
-
-                # if euclidean(p, face.center) > face.max_distance:
-                #     continue
-
                 # now we want to check if this point is inside the face
                 if face.is_in_triangle(p):
-                    intersected_face = (t, face)
+                    t_min = t
+                    intersected_face = (p, face)
+                    if t_limit == 0:
+                        return intersected_face
 
-                if t_limit == 0 and intersected_face[1] is not None and face_int != intersected_face:
-                # if t_limit == 0 and intersected_face[1] is not None:
-                    break
-
-        if intersected_face[1] is not None:
-            return r0 + (intersected_face[0] * d), intersected_face[1]
-        return None, None
+        return intersected_face
 
     def transform_to_camera(self):
         wc_matrix = wct.get_world_camera_matrix(self.po, self.look_at, self.a_vup)
@@ -515,15 +486,13 @@ class Scenario(object):
 
     def render(self, window_width, window_height, window_distance, pixels_width, pixels_height, ray_mean=True,
                parallel=True, shadow=False, projection_type="PERSPECTIVE", oblique_angle=None, oblique_factor=None):
-        if ray_mean:
 
-            scenario = self.ray_casting_mean(window_width, window_height, window_distance, pixels_width, pixels_height,
-                                             parallel=parallel, shadow=shadow, projection_type=projection_type,
-                                             oblique_angle=oblique_angle, oblique_factor=oblique_factor)
-        else:
-            scenario = self.ray_casting(window_width, window_height, window_distance, pixels_width, pixels_height,
-                                        parallel=parallel, shadow=shadow, projection_type=projection_type,
-                                        oblique_angle=oblique_angle, oblique_factor=oblique_factor)
+        param_list = [window_width, window_height, window_distance, pixels_width, pixels_height]
+        param_dict = {"parallel": parallel, "shadow": shadow, "projection_type": projection_type,
+                      "oblique_angle": oblique_angle, "oblique_factor": oblique_factor}
+
+        scenario = self.ray_casting_mean(*param_list, **param_dict) if ray_mean else\
+            self.ray_casting(*param_list, **param_dict)
 
         plt.imshow(scenario)
         plt.show()
