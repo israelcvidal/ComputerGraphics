@@ -351,8 +351,8 @@ def create_objects():
     objects.append(sofa2_3)
 
     # SOFA 1: BASE
-    s = mt.get_scale_matrix([0.6, 0.3, 1, 1])
-    t = mt.get_translation_matrix([0.3, 0.05, 1.5])
+    s = mt.get_scale_matrix([0.6, 0.3, 1.2, 1])
+    t = mt.get_translation_matrix([0.3, 0.05, 1.4])
     m = mt.compose_matrices([t, s])
     sofa1_4 = copy.deepcopy(cube)
     sofa1_4.apply_transformation(m)
@@ -366,8 +366,8 @@ def create_objects():
     objects.append(sofa2_4)
 
     # SOFA 1: ASSENTO 1
-    s = mt.get_scale_matrix([0.6, 0.05, 0.5, 1])
-    t = mt.get_translation_matrix([0.3, 0.35, 1.48])
+    s = mt.get_scale_matrix([0.6, 0.05, 0.60, 1])
+    t = mt.get_translation_matrix([0.3, 0.35, 1.37])
     m = mt.compose_matrices([t, s])
     sofa1_5 = copy.deepcopy(cube)
     sofa1_5.apply_transformation(m)
@@ -381,7 +381,7 @@ def create_objects():
     objects.append(sofa2_5)
 
     # SOFA 1: ASSENTO 2
-    t = mt.get_translation_matrix([0, 0, 0.53])
+    t = mt.get_translation_matrix([0, 0, 0.63])
     sofa1_6 = copy.deepcopy(sofa1_5)
     sofa1_6.apply_transformation(t)
     objects.append(sofa1_6)
@@ -439,8 +439,8 @@ def main():
 
     lights = [punctual_light, spot_light]
 
-    po = [1.5, 1.5, 4, 1.0]
-    look_at = np.array([1.5, 1.5, 0, 1.0])
+    po = [1.5, 1.5, 4.0, 1.0]
+    look_at = np.array([1.5, 1.5, 0.0, 1.0])
     a_vup = look_at + [0, 1, 0., 0]
 
     p = "PERSPECTIVE"
@@ -457,7 +457,7 @@ def main():
 
     window = Window(window_width, window_height, d, pixels_width, pixels_height)
 
-    scenario.render(window=window, ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
+    scenario.render(window=window, ray_mean=True, parallel=False, shadow=True, projection_type=projection_type,
                     oblique_angle=0, oblique_factor=0)
 
 
