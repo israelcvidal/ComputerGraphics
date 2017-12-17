@@ -22,15 +22,12 @@ def main():
     # objects.append(floor)
 
     # T = mt.get_translation_matrix([1, 0, 2])
-    cube2 = copy.deepcopy(cube)
+    # cube2 = copy.deepcopy(cube)
     # cube2.apply_material(obj.Material([0, 0, 0], [0, 0, 0], [0, 0, 0], 1))
     # cube2.apply_transformation(T)
-    objects.append(cube2)
+    objects.append(cube)
 
-    punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[1.5, 1.2, 0.1])
-    # spot_light = SpotLightSource(intensity=[0.8, 0.8, 0.8], position=[3.5, 3.5, 3.5],
-    #                              direction=[0.5, 0.5, 0.5], theta=20.0)
-    # infinity_light = InfinityLightSource([0.8, 0.8, 0.8], [1., 0., 1.])
+    # punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[1.5, 1.2, 0.1])
 
     po = [0.5, 0.5, 2.5, 1.0]
     look_at = [0.5, 0.5, 0.5, 1.0]
@@ -42,15 +39,16 @@ def main():
     cv = "CAVALIER"
     ort = "ORTHOGRAPHIC"
 
-    projection_type = cb
+    projection_type = ob
 
     scenario = Scenario(objects=objects, light_sources=[],
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[0., 0., 0.],
                         ambient_light=[0.9, 0.9, 0.9])
 
-    scenario.render(window_width, window_height, d, pixels_width, pixels_height,
-                    ray_mean=False, parallel=True, shadow=False, projection_type=projection_type,
-                    oblique_angle=45, oblique_factor=None)
+    window = Window(window_width, window_height, d, pixels_width, pixels_height)
+
+    scenario.render(window, ray_mean=False, parallel=True, shadow=False, projection_type=projection_type,
+                    oblique_angle=45, oblique_factor=1)
 
 
 if __name__ == '__main__':
