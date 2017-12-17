@@ -415,11 +415,10 @@ def create_objects():
     objects.append(table3)
 
 
-    # # print total number of faces
+    # print total number of faces
     # size = 0
     # for obje in objects:
-    #     for face in obje.faces:
-    #         size += 1
+    #     size += len(obje.faces)
     # print(size)
 
     return objects
@@ -430,12 +429,15 @@ def main():
     window_height = 1
     window_width = 1
 
-    pixels_height = 100
-    pixels_width = 100
+    pixels_height = 200
+    pixels_width = 200
 
     objects = create_objects()
 
-    punctual_light = PunctualLightSource(intensity=[1., 1., 1.], position=[1.5, 2.9, 2.])
+    punctual_light = PunctualLightSource(intensity=[0.5, 0.5, 0.5], position=[1.5, 2.9, 2.])
+    spot_light = SpotLightSource(intensity=[0.5, 0.5, 0.5], position=[1.5, 2.9, 2.], direction=[0, -1, 0], theta=15)
+
+    lights = [punctual_light, spot_light]
 
     po = [1.5, 1.5, 4, 1.0]
     look_at = np.array([1.5, 1.5, 0, 1.0])
@@ -449,13 +451,13 @@ def main():
 
     projection_type = p
 
-    scenario = Scenario(objects=objects, light_sources=[punctual_light],
+    scenario = Scenario(objects=objects, light_sources=lights,
                         po=po, look_at=look_at, a_vup=a_vup, background_color=[5/255, 154/255, 244/255],
                         ambient_light=[0.5, 0.5, 0.5])
 
     window = Window(window_width, window_height, d, pixels_width, pixels_height)
 
-    scenario.render(window=window, ray_mean=True, parallel=True, shadow=True, projection_type=projection_type,
+    scenario.render(window=window, ray_mean=True, parallel=True, shadow=False, projection_type=projection_type,
                     oblique_angle=0, oblique_factor=0)
 
 
